@@ -38,6 +38,19 @@ describe String do
       expect(str["bcd"]="BCD").to eq 'BCD'
       expect(str).to eq 'aBCDe'
     end
+    it 'change the value, and BANG' do
+      expect(str[1,3]="BCD").to eq 'BCD'
+      expect(str).to eq 'aBCDe'
+    end
+    it 'change the value, and BANG' do
+      expect(str[1..3]="BCD").to eq 'BCD'
+      expect(str).to eq 'aBCDe'
+    end
+    it 'change the value, and BANG' do
+      expect(str[/bcd/]="BCD").to eq 'BCD'
+      expect(str).to eq 'aBCDe'
+    end
+
   end
 
   describe 'casecmp and <=>' do
@@ -58,6 +71,8 @@ describe String do
   describe 'sub and sub!' do
     it 'replace the first much' do
       str = "abcde-abcde"
+      expect(str.sub("bcd","BCD")).to eq 'aBCDe-abcde'
+      expect(str).to eq 'abcde-abcde'
       expect(str.sub(/bcd/,"BCD")).to eq 'aBCDe-abcde'
       expect(str).to eq 'abcde-abcde'
       expect(str.sub!(/bcd/,"BCD")).to eq 'aBCDe-abcde'
@@ -107,12 +122,88 @@ describe String do
       expect(str.index("!")).to eq 4
       expect(str.index("!",5)).to eq 9
     end
+    it 'should ok for Regexp too' do
+      str = 'find!find!find!find!find!'
+      expect(str.index(/!/)).to eq 4
+      expect(str.index(/!/,5)).to eq 9
+    end
   end
 
   describe 'scan' do
     it 'returns array of the much string' do
       str = 'find!find!find!find!find!'
       expect(str.scan(/find!/)).to eq ["find!","find!","find!","find!","find!"]
+    end
+  end
+
+  describe '%' do
+    it 'returns a formatted string' do
+      str = "%05d"
+      expect(str%23).to eq "00023"
+      expect(str).to eq "%05d"
+    end
+  end
+
+  describe 'replace' do
+    it 'change string' do
+      expect(str.replace("xyz")).to eq "xyz"
+      expect(str).to eq "xyz"
+    end
+  end
+
+  describe 'insert' do
+    it 'insert a string' do
+      expect(str.insert(1,"xyz")).to eq 'axyzbcde'
+      expect(str).to eq 'axyzbcde'
+    end
+  end
+
+  describe 'squeeze' do
+    it 'delete side duplication of char' do
+      str = 'aa-bb-cc-aa'
+      expect(str.squeeze).to eq 'a-b-c-a'
+    end
+    it 'delete side duplication of char' do
+      str = 'aa-bb-cc-aa'
+      expect(str.squeeze('a')).to eq 'a-bb-cc-a'
+    end
+    example 'tr_s is same as tr and squeeze' do
+      str = 'aa-bb-cc-aa'
+      expect(str.tr_s('abc-','xyz+')).to eq str.tr!('abc-','xyz+').squeeze
+    end
+  end
+
+  describe 'chomp' do
+    it 'delete ¥n at last one' do
+      str = 'Hello¥nWorld!¥n'
+      expect(str.chomp('¥n')).to eq 'Hello¥nWorld!'
+    end
+    it 'delete nothing' do
+      str = 'Hello¥nWorld!¥n'
+      expect(str.chomp).to eq 'Hello¥nWorld!¥n'
+    end
+  end
+
+  describe 'reverse' do
+    it 'reverse' do
+      expect(str.reverse).to eq 'edcba'
+      expect(str).to eq 'abcde'
+    end
+  end
+
+  describe 'include?' do
+    it 'should be true' do
+      expect(str.include?('a')).to be true
+    end
+    it 'should be false' do
+      expect(str.include?('x')).to be false
+    end
+  end
+
+  describe 'hex' do
+    it 'returns Fixnum, and 16' do
+      expect("0x10".hex.class).to eq Fixnum
+      expect("0x10".hex).to eq 16
     end
   end
 end
