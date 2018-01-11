@@ -149,8 +149,6 @@ to_f | 小数化
 * **Rational + Float = Float**
 * **Complex + Float/Integer = Complex**
 
-
-
 ## String
 
 Literal | What is made ? | 備考
@@ -188,9 +186,6 @@ Literal | What is made ? | 備考
 次 | succ,next | succ!, next! ||String
 整数化 | to_i | | | Integer
 16進化 | hex | | `0x`,`0X`,`_`を無視 | Integer
-
-
-
 
 ## Symbol
 生成方法 | アウトプット
@@ -236,19 +231,8 @@ $｀ | マッチ位置より前の文字列
 $& | マッチした文字
 $' | マッチした文字より後ろ
 
-## Range
-生成方法 | アウトプット
--- | --
-1..10 | 1から10以下の範囲
-1...10 | 1から10未満の範囲
-
-
-メソッド | やること |
--- | --
-== |   同値?
-=== |  含む?
-.include?|  含む?
-
+## [Range](./range_spec.rb)
+range_spec.rbに記載
 
 ## Array
 生成方法 | アウトプット
