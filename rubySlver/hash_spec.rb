@@ -21,6 +21,10 @@ describe Hash do
       b.update(x)
       expect(a).to eq b
     end
+    example 'when conflict occur, argument hash is prior' do
+      expect(a.merge!({a:10,b:10,c:10})).to eq ({a:10,b:10,c:10})
+      expect(a).to eq ({a:10,b:10,c:10})
+    end
   end
 
   describe 'shift' do

@@ -8,7 +8,7 @@
   * オブジェクト指向設計実践ガイド ←最近
   * Design Patterns in Ruby ←最近
   * Refactoring Ruby Edition ←最近
-  * **Ruby技術者認定試験合格教本** ←試験対策はコレ
+  * **Ruby技術者認定試験合格教本** ←試験対策そのものはコレをつかう
 * 問題集
   * Ruby技術者認定試験合格教本
   * http://www.ruby.or.jp/ja/certification/examination/rex
@@ -149,7 +149,7 @@ to_f | 小数化
 * **Rational + Float = Float**
 * **Complex + Float/Integer = Complex**
 
-## String
+## [String](./string_spec.rb)
 
 Literal | What is made ? | 備考
 -- | -- | -- |
@@ -235,7 +235,7 @@ $' | マッチした文字より後ろ
 ## [Range](./range_spec.rb)
 range_spec.rbに記載
 
-## Array
+## [Array](./array_spec.rb)
 [array_spec.rb](./array_spec.rb)に記載の分は基本的に省く。破壊的メソッドがあるものは、暗記のためにこちらにも必ず書く。
 
 生成方法 | アウトプット
@@ -268,12 +268,12 @@ Array.new(3){｜i｜ i * 3}| [0, 3, 6]
 変更 | | []= | |
 検索 | assoc | | 配列の配列の１番目の要素を検索 | Array or nil
 検索 | index | | 検索対象のobject | Fixnum
-削除 | | delete_if, reject | ブロックで評価して要素を削除 | self
+削除 | reject | delete_if, reject! | ブロックで評価して要素を削除 | self
 削除 | | delete | 指定の値と`==`で等しい要素をすべて| 削除したObject
 nil削除 | compact | compact! || Array
 重複削除 | uniq | uniq! || Array
 ソート | sort | sort! | | Array
-逆順 | reverse | reverse || Array
+逆順 | reverse | reverse! || Array
 均す | flatten | flatten! || Array
 シャッフル | shuffle | shuffle! || Array
 正射影 | collect, map | collect!, map! | ブロックの評価結果で配列を作る | Array
@@ -390,6 +390,7 @@ usec / tv_usec | マイクロ秒
 wday | 曜日0-6(日〜土)
 yday | 年日0-365
 gmt_offset | gmtとの差分秒
+strftime | t.strftime("%Y/%m/%d")で "2017/1/13"のString
 
 フォーマット | 意味 |
 -- | -- |

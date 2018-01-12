@@ -71,6 +71,10 @@ describe Array do
       expect(a.unshift("Z")).to eq ["Z","A","B"]
       expect(a).to eq ["Z","A","B"]
     end
+    example 'do nothing with no argument' do
+      expect(a.unshift).to eq ["A","B"]
+      expect(a).to eq ["A","B"]
+    end
   end
   describe 'shift' do
     it 'remove a element' do
