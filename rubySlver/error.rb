@@ -14,6 +14,15 @@ class Error
       raise
     ensure
       p 'ensure run at last!'
-      end
     end
+  end
 end
+
+
+# => "first error!"
+# => "second error!"
+# => "ensure run at last!"
+# => ArgumentError: second error!
+# => 	from (irb):5:in `error'
+# => 	from (irb):17
+# => 	from /usr/bin/irb:11:in `<main>'
