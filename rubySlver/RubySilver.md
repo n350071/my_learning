@@ -250,20 +250,20 @@ Array.new(3){｜i｜ i * 3}| [0, 3, 6]
 
 カテゴリ | メソッド | 破壊的メソッド | 引数or説明 | 結果 |
 -- | -- | -- | -- | -- |
-配列の比較 | `==` |  | Array | true / false
-配列の比較 | `<=>` |  | Array, 自分が小さければ-1 | -1,0,1
-配列の連結 | `+` | `concat` | `["A","B"]<<["X","Y"]` |  `["A","B","X","Y"]`
-先頭の要素 | | unshift | 追加 | Array
-先頭の要素 | | shift | 削除 | Objcet
-先頭の要素 | first | | 参照 | Object
-最後の要素 | | push,<< | 追加 | Array
-最後の要素 | | pop | 削除 | Object
-最後の要素 | last |  | 参照 | Object
-途中の要素 | | insert | 追加 | Array
-要素の参照 | | delete_at | 削除,index | Object
-要素の参照 | [],slice | slice! |  | Object or Array
-要素の参照 | at | |  | Object
-要素の参照 | values_at | |  | [Object]
+比較 | `==` |  | Array | true / false
+比較 | `<=>` |  | Array, 自分が小さければ-1 | -1,0,1
+連結 | `+` | `concat` | `["A","B"]<<["X","Y"]` |  `["A","B","X","Y"]`
+追加 | | unshift |  | Array
+追加 | | push,<< |  | Array
+追加 | | insert |  | Array
+削除 | | shift | 削除 | Objcet
+削除 | | pop | 削除 | Object
+削除 | | delete_at | 削除,index | Object
+削除<br>参照 | [],slice | slice! |  | Object or Array
+参照 | first | |  | Object
+参照 | last |  |  | Object
+参照 | at | |  | Object
+参照 | values_at | |  | [Object]
 変更 | | fill | |
 変更 | | []= | |
 検索 | assoc | | 配列の配列の１番目の要素を検索 | Array or nil
@@ -283,39 +283,31 @@ nil削除 | compact | compact! || Array
 ## Hash
 生成方法 | アウトプット
 -- | --
-{"a" => 1} | {"a"=>1}
-{a: 1} | {:a=>1}
-{:a => 1} | {:a=>1}
+{"a"  => 1} | {"a"=>1}
+{:a   => 1} | {:a=>1}
+{:"a" => 1} | {:a=>1}
+{:a      1} | **SyntaxError** , シンボルを作ったけど、=>がない
+{:"a"    1} | **SyntaxError** , シンボルを作ったけど、=>がない
+{a:      1} | {:a=>1}
+{"a":    1} | {:a=>1} **(Ruby2.1ではERROR)**
 [[:a,1]].to_h | {:a=>1}
-Hash.new("none") | {} | 要素がなければ"none"を返す
-Hash.new{｜hash,key｜ hash[key]=nil} | {}
 
-メソッド | やること |
--- | -- |
-default= | 要素がないときの応答を設定する
-[] | キーに対応する値
-values_at | キーに対応する値
-keys | キーの配列
-values | 値の配列
-fetch | キーに対応する値 | キーがなければ引数かブロックの結果を返す
-select | キーと値を引数に、ブロックが真となる**ハッシュ**を返す
-find_all | キーと値を引数に、ブロックが真となる**配列**を返す
-**[]=** | 要素の変更 or 追加
-**delete** | キーの削除
-**reject!** | ブロックで評価した結果が真になる値を除いたハッシュを返す
-**delete_if** | reject!と同じ
-**replace** | 自身を置き換える | object_idは変わらず
-**shift** | 先頭のハッシュを取り除き、配列にして返す
-**merge!** | ハッシュのマージ
-**update** | merge!と同じ
-invert | キーとバリューの入れ替え
-**clear** | 空にする
-each | ブロックにキーと値を渡して評価する
-each_pair | ブロックにキーと値を渡して評価する
-each_key | ブロックにキーを渡して評価する
-each_value | ブロックに値を渡して評価する
-sort | ソートした配列を返す
-to_a | 配列を返す
+
+カテゴリ | メソッド | 破壊的メソッド | 引数or説明 | 結果 |
+-- | -- | -- | -- | -- |
+比較 |
+変更 | | default= | String | the string
+連結 | merge | merge!, update | Hash | Hash
+追加 | | []= | [key]=value | value
+削除 | | delete | key | value
+削除 | | shift | 先頭から | Array
+参照 | [] | | [key] | value
+複数参照 | values_at | | keys | Array
+リスト | keys | | | Array
+リスト | values | | | Array
+選択 | select | select! | ブロック | Hash
+選択 | find_all | | ブロック | Array
+選択 | reject | reject!, delete_if | ブロック | Hash
 
 ## IO
 あぶないところだけ
