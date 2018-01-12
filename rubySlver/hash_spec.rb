@@ -72,7 +72,7 @@ describe Hash do
 
   describe 'find_all' do
     it 'should be [[:a,1]' do
-      expect(a.find_all{|key,value| key == :a})
+      expect(a.find_all{|key,value| key == :a}).to eq ([[:a,1]])
     end
   end
 

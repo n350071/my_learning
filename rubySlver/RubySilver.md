@@ -163,27 +163,27 @@ Literal | What is made ? | 備考
 
 カテゴリ | メソッド | 破壊的メソッド | 引数or説明 | 結果 |
 -- | -- | -- | -- | -- |
-エンコード | encode | encode! | 文字列 | String
+エンコード | encode | encode! | 文字列 | Encoding
 フォーマット | % | |  数字/文字列 | String
 挿入 | | insert | 位置,文字列 | String
 連結 | `+` | `<<` or `concat` | 文字列 | String
 連結 | `*` | |  数字 | String
 分割 | split | | 文字列,正規表現 | Array
 参照 , 除外 | [], slice | slice!| (長さ),(位置,長さ),[範囲],/正規表現/ | String
-変更 | | []= | (長さ),(位置,長さ),[範囲],/正規表現/ | String
+変更 | | []= | (長さ),(位置,長さ),[範囲],/正規表現/ | String,範囲外はIndexError
 変更 | | replace | 文字列 | String
-置換 | sub | sub! | 文字列,正規表現 | String
+置換 | sub | sub! | 文字列,正規表現 |String
 置換 | gsub | gsub! | 文字列,正規表現 | String
 置換 | tr | tr! | 文字列 | String
 隣接重複削除 | squeeze | squeeze! | 文字列 | String
-置換 & sueeze| tr_s | tr_s! | 文字列 | String
+置換 & squeeze| tr_s | tr_s! | 文字列 | String
 除外 | delete | delete! | 文字列のみ | String
 除外 | chop | chop! | 末尾の文字削除 | String
 除外 | chomp | chomp! | 末尾の改行削除 | String
 変換 | reverse | reverse! | | String
 検索 | include? | | | true/false
 検索 | index | | 文字列,正規表現,位置 | Integer
-検索 | scan | 正規表現 | | Array
+検索 | scan | |正規表現 | Array
 次 | succ,next | succ!, next! ||String
 整数化 | to_i | | | Integer
 16進化 | hex | | `0x`,`0X`,`_`を無視 | Integer

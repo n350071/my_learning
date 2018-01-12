@@ -111,6 +111,8 @@ describe String do
       str = '0123456789-'
       expect(str.delete('0-6!XY-')).to eq '789'
       expect(str).to eq '0123456789-'
+      expect(str.delete('^13-56-')).to eq '13456-' #Pattern
+      expect(str.delete('1-9','2-9')).to eq '01-' #Pattern
       expect(str.delete!('0-6!XY-')).to eq '789'
       expect(str).to eq '789'
     end

@@ -60,10 +60,6 @@ describe Array do
       expect(a*"-").to eq "A-B"
       expect(a).to eq ["A","B"]
     end
-    it 'combine arrays to STRING with the string' do
-      expect(a.join"-").to eq "A-B"
-      expect(a).to eq ["A","B"]
-    end
   end
 
   describe 'unshift' do
