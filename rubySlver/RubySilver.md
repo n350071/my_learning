@@ -309,25 +309,69 @@ nil削除 | compact | compact! || Array
 選択 | find_all | | ブロック | Array
 選択 | reject | reject!, delete_if | ブロック | Hash
 
-## IO
-あぶないところだけ
+## IO,DIR,FILE
 
-メソッド | やること |
--- | -- |
-read | ファイルを読む(指定があれば、その長さだけ)
-foreach | 各行をブロックで読む | なにもしない
-each | 各行をブロックで読む | なにもしない
-each_lines | 各行をブロックで読む | なにもしない
-each_byte | 各バイトをブロックで読む | なにもしない
-each_char | 各文字をブロックで読む | なにもしない
-readlines | 全部読んで配列を返す | []
-readline | IOオブジェクトから１行読む | EOFError / nil
-gets | IOオブジェクトから１行読む | EOFError / nil
-getbyte | IOオブジェクトから１バイト読む | EOFError / nil
-readbyte |IOオブジェクトから１バイト読む | EOFError / nil
-getc |IOオブジェクトから１文字読む | EOFError / nil
-readchar | IOオブジェクトから１文字読む | EOFError / nil
-rewind | ファイルポインタを先頭に移動し、linenoの値を0にする
+* Dir.open
+* Dir.close
+* Dir.pwd
+* Dir.getwd
+* Dir.chdir
+* Dir.mkdir
+* Dir.rmdir
+* Dir.unlink
+* Dir.delete
+* Dir.exist?
+* File.open
+* File.new
+  * r   : ファイルの先頭
+  * r+  : ファイルの先頭
+  * w   : ファイルの先頭 : 既存の内容は消去 : write only
+  * w+  : ファイルの先頭 : 既存の内容は消去
+  * a   : ファイルの終端 : write only
+  * a+  : ファイルの終端 : read write
+* File.close
+* File.read
+* File.write
+* File.dirname
+* File.basename
+* File.extname
+* File.split    #=>["/home/gumby", ".profile"]
+* File.stat
+* File.lstat
+* File.atime
+* File.ctime
+* File.mtime
+* File.exist?
+* File.file?
+* File.directory?
+* File.symlink?
+* File.executable?
+* File.readable?
+* File.writeable?
+* File.size?
+* File.delete
+* File.unlink
+* File.truncate
+* File.rename
+* IO.read
+* IO.foreach    #=> ブロックで１行ずつ読む     
+* IO.each       #=> ブロックで１行ずつ読む
+* IO.each_line  #=> ブロックで１行ずつ読む       
+* IO.readlines  #=> 全部読む
+* IO.readline   #=> オブジェクトが１行ずつ読む
+* IO.gets       #=> オブジェクトが１行ずつ読む
+* IO.stat
+* IO.closed?
+* IO.eof / eof?
+* IO.lineno
+* IO.sync
+* IO.rewind
+* IO.pos
+* IO.seek
+  * IO::SEEK_SET
+  * IO::SEEK_CUR
+  * IO::SEEK_END
+
 
 ## Time
 生成方法 | アウトプット

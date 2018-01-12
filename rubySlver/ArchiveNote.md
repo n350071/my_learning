@@ -140,3 +140,51 @@ each_index | 各インデックスをブロックへ渡す繰り返し
 **collect** | 要素毎にブロックの評価結果に置き換え
 **map** | 要素毎にブロックの評価結果に置き換え
 **shuffle** | 要素をシャッフルする
+
+## Hash
+
+メソッド | やること |
+-- | -- |
+**merge!** | ハッシュのマージ
+**update** | merge!と同じ
+**[]=** | 要素の変更 or 追加
+**delete** | キーの削除
+**shift** | 先頭のハッシュを取り除き、配列にして返す
+**clear** | 空にする
+default= | 要素がないときの応答を設定する
+[] | キーに対応する値
+values_at | キーに対応する値
+fetch | キーに対応する値 | キーがなければ引数かブロックの結果を返す
+keys | キーの配列
+values | 値の配列
+select | キーと値を引数に、ブロックが真となる**ハッシュ**を返す
+find_all | キーと値を引数に、ブロックが真となる**配列**を返す
+**reject!** | ブロックで評価した結果が真になる値を除いたハッシュを返す
+**delete_if** | reject!と同じ
+**replace** | 自身を置き換える | object_idは変わらず
+invert | キーとバリューの入れ替え
+each | ブロックにキーと値を渡して評価する
+each_pair | ブロックにキーと値を渡して評価する
+each_key | ブロックにキーを渡して評価する
+each_value | ブロックに値を渡して評価する
+sort | ソートした配列を返す
+to_a | 配列を返す
+
+
+## IO
+メソッド | やること |
+-- | -- |
+read | ファイルを読む(指定があれば、その長さだけ)
+foreach | 各行をブロックで読む | なにもしない
+each | 各行をブロックで読む | なにもしない
+each_lines | 各行をブロックで読む | なにもしない
+each_byte | 各バイトをブロックで読む | なにもしない
+each_char | 各文字をブロックで読む | なにもしない
+readlines | 全部読んで配列を返す | []
+readline | IOオブジェクトから１行読む | EOFError / nil
+gets | IOオブジェクトから１行読む | EOFError / nil
+getbyte | IOオブジェクトから１バイト読む | EOFError / nil
+readbyte |IOオブジェクトから１バイト読む | EOFError / nil
+getc |IOオブジェクトから１文字読む | EOFError / nil
+readchar | IOオブジェクトから１文字読む | EOFError / nil
+rewind | ファイルポインタを先頭に移動し、linenoの値を0にする
