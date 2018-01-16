@@ -18,6 +18,55 @@
 
 # 文法
 
+## 予約語
+* 論理
+  * nil
+  * true
+  * false
+  * not
+  * or
+  * and
+* 初期化ルーチン
+  * BEGIN
+  * END
+* 例外
+  * begin
+  * end
+  * rescue
+  * retry
+  * ensure
+* クラス・メソッド・モジュール・ブロックなど
+  * class
+  * module
+  * def
+  * undef
+  * super
+  * yield
+  * do
+  * defined?
+  * alias
+  * self
+* ループ
+  * return
+  * while
+  * until
+  * for
+  * break
+  * next
+  * redo
+* 制御構文
+  * case
+  * when
+  * if
+  * then
+  * unless
+  * else
+  * elsif
+* 特殊変数
+  * `__LINE__`
+  * `__FILE__`
+  * `__ENCODING__`
+
 ## マジックコメント
 * 行頭のコメントであり、エンコーディングを伝える。
 * Ruby2.0以降はデフォルトUTF-8なので明示的に書く必要なし
@@ -38,6 +87,8 @@
 クラス | `@@¥w+` | クラスの全インスタンス内 | 例外
 定数 | `[A-Z][¥w]*` | クラス・モジュール内 | 例外
 グローバル | `$¥w+` | アプリケーション内 | nil
+
+* 定数はメソッド内では定義できない
 
 疑似変数 | 対応
 -- | --
@@ -73,6 +124,19 @@ error.rbに記載
   a,b,c = [1,2,3]
   (a,b),c = [1,2],3
   a,b, *c = 1,2,3,4 #=> p c #=> [3,4]
+  a,b,c =[[1,2,3],[4,5]] #a=[1,2,3], b=[4,5], c=nil
+
+
+  def bar(*n1, n2, n3)
+    puts "n1: #{n1}"
+    puts "n2: #{n2}"
+    puts "n3: #{n3}"
+  end
+
+  bar 5, 6, 7, 8
+  #=> n1: [5, 6]
+  #=> n2: 7
+  #=> n3: 8
   ```
   * 戻り値では明示的にreturnを書く
   ```
@@ -180,10 +244,11 @@ Literal | What is made ? | 備考
 除外 | delete | delete! | 文字列のみ | String
 除外 | chop | chop! | 末尾の文字削除 | String
 除外 | chomp | chomp! | 末尾の改行削除 | String
+除外 | strip | strip! | 先頭と末尾の空白削除 | String
 変換 | reverse | reverse! | | String
 検索 | include? | | | true/false
 検索 | index | | 文字列,正規表現,位置 | Integer
-検索 | scan | |正規表現 | Array
+検索 | scan | | 文字列,正規表現 | Array
 次 | succ,next | succ!, next! ||String
 整数化 | to_i | | | Integer
 16進化 | hex | | `0x`,`0X`,`_`を無視 | Integer
@@ -235,6 +300,17 @@ $' | マッチした文字より後ろ
 ## [Range](./range_spec.rb)
 range_spec.rbに記載
 
+```
+10.times{|d| print d == 3..d == 5 ? "T" : "F" }
+Integer#timesは0からself -1までの数値を順番にブロックに渡すメソッドです。
+
+d == 3..d == 5の部分は条件式に範囲式を記述しています。
+この式は、フリップフロップ回路のように一時的に真偽を保持するような挙動をとります。
+```
+詳細は、[Rubyリファレンス](https://docs.ruby-lang.org/ja/2.1.0/doc/spec=2foperator.html#range)に詳しい説明がありますのでそちらを参照してください。
+(Rex Ruby Examinationの解説より)
+
+
 ## [Array](./array_spec.rb)
 [array_spec.rb](./array_spec.rb)に記載の分は基本的に省く。破壊的メソッドがあるものは、暗記のためにこちらにも必ず書く。
 
@@ -246,6 +322,7 @@ Array.new(3,'str') |["str", "str", "str"]
 Array.new(3){｜i｜ i * 3}| [0, 3, 6]
 %W(Hello! World!)| ["Hello!" "World!"]
 %w(Hello! World!)| ['Hello!' 'World!']
+`*"a"` | ["a"]
 
 
 カテゴリ | メソッド | 破壊的メソッド | 引数or説明 | 結果 |
