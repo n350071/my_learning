@@ -10,9 +10,18 @@
   * Refactoring Ruby Edition ←最近
   * **Ruby技術者認定試験合格教本** ←試験対策そのものはコレをつかう
 * 問題集
-  * Ruby技術者認定試験合格教本
-  * http://www.ruby.or.jp/ja/certification/examination/rex
-  * https://gist.github.com/sean2121/945035ef2341f0c39bf40762cd8531e0
+  * Ruby技術者認定試験合格教本 <- 92%
+  * http://www.ruby.or.jp/ja/certification/examination/rex ← 94%
+  * https://gist.github.com/sean2121/945035ef2341f0c39bf40762cd8531e0 <- 82%
+
+# アウトプット
+* 90点で合格
+* 期間:2週間
+* その他
+  * 以下の対策が甘く、試験時に賭けをすることになった。キーワードは知っていたので、可能性がある部分について対策をしておくべきだった。
+  * each_with_index
+  * String#each_char
+  * exit
 
 ---
 
@@ -99,6 +108,13 @@ self | 現在のオブジェクト
 `__FILE__` | 現在実行しているプログラムのファイル名
 `__LINE__` | 現在実行しているプログラムの行番号
 `__ENCODING__` | 現在のソースファイルのエンコーディング
+
+## ロード
+
+* require : 添付ライブラリ・ファイルの読み込み(１回)
+* load    : ファイルの読み込み(何度も)
+* include : モジュールの読み込み
+* extend  : モジュールの読み込み for 特異オブジェクト
 
 ## **再定義不可** の演算子
 
@@ -354,7 +370,7 @@ nil削除 | compact | compact! || Array
 均す | flatten | flatten! || Array
 シャッフル | shuffle | shuffle! || Array
 正射影 | collect, map | collect!, map! | ブロックの評価結果で配列を作る | Array
-選択 | select | select! | ブロックの評価がtrueのものだけピックアップ | Array
+選択 | select, find_all | select! | ブロックの評価がtrueのものだけピックアップ | Array
 
 
 ## Hash
