@@ -118,53 +118,107 @@
 ## ブロックなど
 ### ブロック
 
-種類 | 優先順位 | 渡される先
--- | --
-`do ~ end` | | `yield`
-`{}` | | `yield`
+* ブロックは、メソッドコールの時にのみ書ける
+  * `func(1){p 'Here is block'}`
+* 新たにスコープを作成する
+  * ブロック内で初期化した変数は、ブロック終了と共に消滅する(外部から参照できない)
+    * `func(1){x+=2}; p x #=> NameError`
+  * ブロック外の変数をブロック内で評価・更新が可能
+    * `x=2; func(1){x+=2}; p x #=> 4`
+    * {}ブロックの中に、xも閉じ込める(クロージャー)している
+      * クロージャーとは生成時の環境を閉じ込める仕組みを一般的に指す言葉
+* ブロックの定義
+  * `{}` or `do end`
+  * 引数
+    * 仮引数 `||` で指定
+    * 実引数 `yield`で指定
+      * ```
+        def func a,b
+          a + yield(b,3)
+        end
+        p func(1,2){|x,y| x+y} #=>6
+        ```
+* block_given?
+  * ブロックが指定されたかどうかで処理を分けることができる
+  * ```
+    def func
+      return 1 if block_given?
+      2
+    end
+    p func(){} #=>1
+    p func     #=>2
+    ```
+* Proc
+  * ローカル変数に紐付けられたブロックのオブジェクト
+  * ブロックは
+    * コンストラクタで渡す
+    * 実行時に渡す
+  * 例
+    * ```
+      def gen_times(factor)
+        return Proc.new {|n| n*factor }
+      end
 
-### ブロックを受ける
-#### yield
-* yield(x)でブロックに引数(x)を渡して実行する
-* 関数を受け取れる関数
+      times3 = gen_times(3)
+      times5 = gen_times(5)
 
-```
-def arg_one
-  yield(1) + yield(2)
-end
+      times3.call(12)               #=> 36
+      times5.call(5)                #=> 25
+      times3.call(times5.call(4))   #=> 60
+    ```
+  * call
+    * blockを呼び出す
+    * `.()`と`.`は`call`のシンタックスシュガー
+    * 引数の数が足りなければ、nilを代入するのでエラーにならない
+    * 引数の数が多ければ、無視する
+* Procとブロックの相互変換
+  * Proc→ブロック
+    * &をつけて引数の最後に指定する
+      * `proc=Proc.new{2}; func(1,&proc)`
+  * ブロック→Proc
+    * 最後の仮引数に&を付けた名前を指定する
+    * 参照時は&を外す
+      * `def func x, &proc; x + proc.call; end`
+    * ブロック中のリターン
+      * 生成元のスコープを脱出する
+        * トップレベルで生成したブロックであれば、脱出先がないのでエラー
+        * メソッド中で生成したブロックであれば、メソッドを抜ける
+* Kernel#lambda{|...| block} -> a_proc
+  * Equivalent to Proc.new, except the resulting Proc objects check the number of parameters passed when called.
+    * →引数の数をチェックすることを除いて、Proc.newと同じ
+  * 定義方法
+    * `lmd = lambda{|x| p x}; lmd.call(1) #=>1`
+    * `lmd = -> (x){p x}; lmd.call(1) #=>1`
+  * ブロック中のリターン
+    * 呼び出し元に戻る
+* 自分で定義したクラスに、ブロックを受けるeachメソッドを定義する
+  * ```
+  class Result
+    include Enumerable
 
-p arg_one{|x| x + 3} #=> (3+1) + (3+2) #=> 9
-```
+    def initialize
+        @results_array = []
+    end
 
-#### &block
-* ブロック引数を明示し、callメソッドで実行する
-* 関数を受け取れる関数
+    def <<(val)
+        @results_array << val
+    end
 
-```
-def arg_one(&block)
-  block.call(1) + block.call(2)
-end
-
-p arg_one{|x| x + 3} #=> 9
-```
-#### Procオブジェクト
-* 関数をオブジェクトとして作成
-* 引数の数のチェックがない
-
-```
-plus_three = Proc.new{|x| x + 3 }
-p plus_three.call(1) + plus_three.call(2) #=> 9
-```
-
-#### lambda
-* Procと違って、引数の数のチェックがある
-
-```
-plus_three = lambda{|x| x + 3}
-p plus_three.call(1) + plus_three.call(2) #=> 9
-```
-
-### クロージャー
+    def each(&block)
+        @results_array.each(&block)
+    end
+  end
+  ---
+  r = Result.new  
+  r << 1
+  r << 2
+  r.each { |v|
+    p v
+  }
+  #print:
+  # 1
+  # 2
+  ```
 
 ## その他
 ### Ruby実行オプション
@@ -176,7 +230,7 @@ p plus_three.call(1) + plus_three.call(2) #=> 9
 ### Module
 #### Comparable
 #### Enumerable
-#### 例外
+#### 例外、大域脱出
 #### FileなどIO
 
 # 添付ライブラリ
