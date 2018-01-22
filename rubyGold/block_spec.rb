@@ -41,5 +41,20 @@ describe 'Block' do
         expect(func(1){2}).to eq 3
       end
     end
+    describe 'Proc with no block' do
+      example 'Proc.new and pass it' do
+        def proc_form
+          Proc.new
+        end
+        proc = proc_form{'hello'}
+        expect(proc.call).to eq 'hello'
+      end
+      example 'Proc.new and run it' do
+        def proc_form
+          Proc.new
+        end
+        expect(proc_form{'hello'}.call).to eq 'hello'
+      end
+    end
   end
 end
