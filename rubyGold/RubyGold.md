@@ -13,7 +13,8 @@
 * 問題集
   * Ruby技術者認定試験合格教本
   * http://www.ruby.or.jp/ja/certification/examination/rex
-    * 54%
+    * 1回目:54%
+    * 2回目:76%
 * Extra
   * 関数型プログラミング
     * [可変性の回避 ― Rubyへの関数型プログラミングスタイルの適用](http://postd.cc/avoid-mutation-functional-style-in-ruby/)
@@ -36,56 +37,6 @@
       * ①間違えたところ
       * ②あやふやだと感じるところ
 
-# 重点対策ポイント
-## オブジェクト指向
-* クラスと変数
-  * クラスインスタンス変数 `@val`
-    * 特異メソッドからアクセスできる
-    * 特異クラスのクラスインスタンス変数 `@val`
-    * 定数の探索経路(Q.44)
-  * 特異クラス
-  * クラス定義と、各変数の実行タイミング ←整理したい
-* 継承
-* self
-  * ```p [1,2,3,4].map(&self.method(:*))```
-  * どのクラス・モジュールを指している？
-
-## ブロック
-* ブロックとメソッド、メソッドの引数
-  * Kernel#block_givien?
-  * yield
-  * lambda
-  * call
-  * Proc
-  * 引数 `|*args|` で渡された時 ←これはキーワード引数とか、多重代入？
-  * {},do end
-      * ```
-        m1 m2 do
-          "hello"
-        end
-        ```
-
-## その他
-* Ruby実行オプション
-* 可視性(public,protect,private)
-* attr_accessor, attr_reader, attr_writer(Q.43,Q.　50)
-* キーワード引数
-  * `**` Hash (`*`の場合はどうなる？)
-  * コール、および受け側
-* エイリアス
-  * alias_method
-  * Module#alias
-* 演算子の優先順位
-  * 短絡評価およびand,or、そしてシンタックスエラーの評価
-    * ```true or raise RuntimeError```
-    * ```false and raise RuntimeError```
-* 範囲演算子の条件式の詳細
-  * `d<2..d>5` と `d<2...d>5` の違い
-* Comparable#between?
-* Enumerable
-* 例外(else構文)
-* File#read
-
 ---
 
 # 重点対策ポイント別のまとめ
@@ -94,6 +45,7 @@
 ### super
   * super
     * メソッドが受け取った引数をそのままスーパークラスに渡す
+      * スーパークラスでは`initialize(*)`というように無名オブジェクトの多重代入にしておくと、下位クラスで()をつけるかどうかを意識しなくて済む
   * super()
     * メソッドが受け取った引数を渡さない
 
@@ -102,11 +54,14 @@
   * ancestors
   * instance_methods(false) #スーパークラスを辿らない
   * エイリアス
-    * メソッドではないので、`,`は不要
-    * メソッド名は識別子かシンボルで指定(文字列は不可)
-      * `alias new_method_name old_method_name`
-      * `alias new_global_name old_global_name`
-    * 定義前に書くとNameError
+    * Syntax
+      * メソッドではないので、`,`は不要
+      * メソッド名は識別子かシンボルで指定(文字列は不可)
+        * `alias new_method_name old_method_name`
+        * `alias new_global_name old_global_name`
+      * 定義前に書くとNameError
+    * Module#alias_method
+      * `alias_method :orig_exit, :exit`
   * 定義取り消し
     * undef <メソッド名>,<メソッド名>,<メソッド名>
     * 定義前に書くとNameError
@@ -124,14 +79,13 @@
       #=> [:huga1,:huga3, :huga4]
       ```
 ### オープンクラス
-* スーパークラスを指定してオープンする場合は、別のスーパクラスは定義できない
 
 ```
 class Foo; end
 class Bar; end
 class Baz < Foo
 end
-class Baz < Bar #TypeError
+class Baz < Bar #TypeError スーパークラスを指定してオープンする場合は、別のスーパクラスは定義できない
 end
 class Baz < Foo #ok
 end
@@ -140,18 +94,6 @@ end
 ```
 
 ### [Mix-in](./mix_in_sprc.rb)
-
-### メソッドの可視性
-
-識別子 | 可視性
--- | --
-public  | any instance
-protected | self or instance of subclass
-private | self(レシーバ付呼出不可)
-
-* 可視性はサブクラスで変更可能
-* メソッド名をシンボルで指定することも可能
-  * `private :method1, :method2`
 
 ### 変数と定数
 #### ローカル変数
@@ -209,6 +151,10 @@ p s.v4 #=>4
 * 再代入
   * 可能
   * 警告が出る
+* 中身の直接変更
+  * 可能
+  * 警告なし
+  * `CONST[0] = "A" #=> ["A",2,3]`
 * メソッド内
   * 定義不可
   * 再代入不可
@@ -298,13 +244,36 @@ p s.v4 #=>4
       times3.call(12)               #=> 36
       times5.call(5)                #=> 25
       times3.call(times5.call(4))   #=> 60
-    ```
+      ```
   * Proc#call
     * blockを呼び出す
-    * `.()`と`.`は`call`のシンタックスシュガー
+    * Procを格納した変数名と同名のメソッドがあっても、この変数名の方が優先されて呼ばれる
+      * ```
+        def proc(x); p "func #{x}"; end
+        proc = Proc.new{|x|p "proc #{x}"}
+        proc.call(2)   #=> "proc 2"
+        proc[2]        #=> "proc 2"
+        proc.(2)       #=> "proc 2"
+        proc.yield(2)  #=> "proc 2"
+        proc(2)        #=> "func 2"
+        proc 2         #=> "func 2"
+        ```
+    * シンタックスシュガー `proc = Proc.new{|times, *args| args.map{|val| val * times}}`
+      * `proc.call(9,1,2,3)   #=>[9,18,27]`
+      * `proc[9,1,2,3]        #=>[9,18,27]`
+      * `proc.(9,1,2,3)       #=>[9,18,27]`
+      * `proc.yield(9,1,2,3)  #=>[9,18,27]`
     * callの引数は、ブロックの引数になる
       * 引数の数が足りなければ、nilを代入するのでエラーにならない
       * 引数の数が多ければ、無視する
+  * Proc#arity
+    * 引数の数を取得
+  * next
+    * 手続きオブジェクト内で処理を中断し、呼び出し元へ最後の評価値を返す
+    * ```
+      f = Proc.new{next 'next'; 'last'}
+      f.call #=> 'next'
+      ```
 * Procとブロックの相互変換
   * Proc→ブロック
     * &をつけて引数の最後に指定する
@@ -323,36 +292,62 @@ p s.v4 #=>4
   * 定義方法
     * `lmd = lambda{|x| p x}; lmd.call(1) #=>1`
     * `lmd = -> (x){p x}; lmd.call(1) #=>1`
-  * ブロック中のリターン
-    * 呼び出し元に戻る
+  * ブロック中に呼び出し元に戻る
+    * return
+    * break
 * 自分で定義したクラスに、ブロックを受けるeachメソッドを定義する
   * ```
-  class Result
-    include Enumerable
+    class Result
+      include Enumerable
 
-    def initialize
-        @results_array = []
+      def initialize
+          @results_array = []
+      end
+
+      def <<(val)
+          @results_array << val
+      end
+
+      def each(&block)
+          @results_array.each(&block)
+      end
+    end
+    ---
+    r = Result.new  
+    r << 1
+    r << 2
+    r.each { |v|
+      p v
+    }
+    #print:
+    # 1
+    # 2
+    ```
+  * {}とdo endの結合度
+    ```
+    def m1(*)
+      str = yield if block_given?
+      p "m1 #{str}"
     end
 
-    def <<(val)
-        @results_array << val
+    def m2(*)
+      str = yield if block_given?
+      p "m2 #{str}"
     end
 
-    def each(&block)
-        @results_array.each(&block)
+    m1 m2 {
+      "hello"
+    }
+    #=> m2 hello
+    #=> m1
+
+    m1 m2 do
+      "hello"
     end
-  end
-  ---
-  r = Result.new  
-  r << 1
-  r << 2
-  r.each { |v|
-    p v
-  }
-  #print:
-  # 1
-  # 2
-  ```
+    #=> m2
+    #=> m1 hello
+
+    ```
 
 ### スレッド
 
@@ -383,17 +378,129 @@ t.join # スレッドの終了を待ってから抜ける
 ```
 
 ## その他
-### Ruby実行オプション
-### 可視性
+### 多重代入
+受け取ったあと`*`をつけると配列から展開。つけないと配列のまま
+```
+def foo *a
+  p *a
+end
+foo(1,2)
+#=> 1
+#=> 2
+
+def bar *b
+  p b
+end
+bar(1,2)
+#=>[1,2]
+```
+
+無名の可変長引数
+```
+def initialize(*) #サブクラスでsuperとしてエラーにならないので、意識しなくてよくなる
+end
+```
+
+### Date,Time,DateTime
+
+演算 | 戻り値クラス
+Time同士の減算 |	Float
+Date同士の減算 | Rational
+DateTime同士の減算 |	Rational
+DateTime.now-Date.today | Rational
+Time.now - DateTime.now など | convertエラー
+
 ### キーワード引数
-### エイリアス
+* 引数名:デフォルト値
+
+```
+def foo(a:, b: 100)
+ a + b
+end
+foo(a:2,b:3)      #=> 5
+foo(**{a:2,b:3})  #=> 5 ハッシュを渡すときは、**をつける
+foo(a: 1)         #=> 101
+foo               #=>ArgumentError aはデフォルト値がないため
+foo(a:2,b:3,c:4)  #=>ArgumentError cなんてない
+foo(3,3)          #=>ArgumentError: wrong number of arguments
+```
+
+* 仮引数に`**`をつけておくと、ハッシュを受け取れる
+
+```
+＜例１＞
+def bar(**z)
+  z                 # *z,**z はSyntaxError
+end
+bar(c:100,d:200)    #=>{:c=>100, :d=>200}
+bar({c:100,d:200})  #=>bar({c:100,d:200})
+
+＜例２＞
+
+```
+
+
+### self
+
+位置 | 参照オブジェクト
+-- | --
+クラス内 | newしたクラス
+メソッド内 | レシーバ
+ブロック内 |
+
+```
+問題のselfはObjectクラスのインスタンスになります。
+Objectクラスには*メソッドが定義されていないためエラーになります。
+p [1,2,3,4].map(&self.method(:*))
+
+class Foo
+  def foo
+    ary = [1,2,3,4]
+    ary.map(&self.method(:*))
+  end
+end
+Foo.new.foo #=>NameError: undefined method `*' for class `Foo'
+
+class Bar
+  def *(input)
+    input * input
+  end
+  def bar
+    ary = [1,2,3,4]
+    ary.map(&self.method(:*))
+  end
+end
+Bar.new.bar  #=>[1,4,9,16]
+```
+
 ### 演算子の優先順位
+* 短絡評価およびand,or、そしてシンタックスエラーの評価
+  * ```true or raise RuntimeError```
+  * ```false and raise RuntimeError```
 ### 範囲演算子の条件式
+* 範囲演算子の条件式の詳細
+  * `d<2..d>5` と `d<2...d>5` の違い
 ### Module
 #### Comparable
+* Comparable#between?
 #### Enumerable
-#### 例外、大域脱出
-##### 脱出構文(loopから抜ける)
+
+### メソッドの可視性
+
+識別子 | 可視性
+-- | --
+public  | any instance
+protected | self or instance of subclass
+private | self(レシーバ付呼出不可)
+
+* 可視性はサブクラスで変更可能
+* メソッド名をシンボルで指定することも可能
+  * `private :method1, :method2`
+* initializeは常にprivate
+
+
+### 脱出・例外
+#### 脱出構文(loopから抜ける)
 
  メソッド | 説明 | 例(現在5回目のループ)
 -- | -- | --
@@ -401,7 +508,7 @@ t.join # スレッドの終了を待ってから抜ける
 | next | 中断して次のループに進む | 6回目のループに入る
 | redo | 現在のループを繰り返す | 5回目のループをもう一度
 
-##### 例外処理
+#### 例外処理
 例外クラスの継承関係
 * Exception
   * SignalException
@@ -409,7 +516,7 @@ t.join # スレッドの終了を待ってから抜ける
     * SyntaxError
   * StandardError
       * ArgumentError
-      * RuntimeError
+      * RuntimeError *デフォルト*
       * ZeroDivisionError
       * NameError
         * NoMethodError
@@ -419,8 +526,20 @@ t.join # スレッドの終了を待ってから抜ける
 * backtrace
 * rase (最後に発生した例外をもう一度投げる..呼び出し元に委ねる)
 
+```
+def ex
+  begin
+    raise
+  rescue => e
+    e.backtrace
+  end
+end
+ex #=>["(irb):17:in `ex'", "(irb):22:in `irb_binding'", "/System/Library/Frameworks/Ruby.framew...
+...irb.rb:394:in `start'", "/usr/bin/irb:11:in `<main>'"]
+```
 
-##### 大域脱出(throw, catch)
+
+#### 大域脱出(throw, catch)
 
 * Kernel#throw :label, obj
   * 対応するラベルが見つからない場合は、 `UncaughtThrowError`
@@ -460,9 +579,43 @@ p example
 
 ```
 
+### freeze
+freezeはオブジェクトを凍結します。凍結されたオブジェクトは次の特徴があります。
+
+* 破壊的な操作ができません。
+* オブジェクトの代入ができます。
+* 自作クラスのインスタンス変数をfreezeしない限り、変更できます。
+
+```
+# 破壊的操作ができない例
+hoge = "hoge".freeze
+hoge.upcase!
+p hoge
+
+# <実行結果>
+# RuntimeError: can't modify frozen String
+
+# オブジェクトの代入ができる例
+hoge = "hoge".freeze
+hoge = "foo".freeze
+p hoge
+
+# <実行結果>
+# foo
+```
+
+
 #### FileなどIO
 
 # 添付ライブラリ
 ## socket
 ## date
 ## stringio など
+
+
+---
+３回目
+* CONSTをfreezeして変更する 1
+* `p [1,2,3,4].map(&self.method(:*))` 20
+* 30
+* 41なんで？

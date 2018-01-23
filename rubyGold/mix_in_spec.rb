@@ -145,7 +145,7 @@ describe 'mix-in' do
       expect(C2.new.mod).to eq 'C2'
       expect(C2.ancestors).to eq [C2, ModA, Object, Kernel, BasicObject]
     end
-    example 'super means the class' do
+    example 'super in prepended module means the class' do
       module ModC
         def mod
           super + 'ModC' #C3にprependされた状態でのsuperはC3を指す
@@ -188,7 +188,7 @@ describe 'mix-in' do
       expect(String.hello).to eq 'Hello World!'
     end
 
-    example 'def class method for A class' do
+    example 'def class method for a class' do
       class D
         def D.foo
           'Dfoo'
@@ -196,7 +196,7 @@ describe 'mix-in' do
       end
       expect(D.foo).to eq 'Dfoo'
     end
-    example 'def class method for A class' do
+    example 'def class method for a class' do
       class E
         def self.foo
           'Efoo'
@@ -204,7 +204,7 @@ describe 'mix-in' do
       end
       expect(E.foo).to eq 'Efoo'
     end
-    example 'def class method for A class' do
+    example 'def class method for a class' do
       class F
         class << self
           def foo; 'Ffoo'; end
@@ -214,7 +214,7 @@ describe 'mix-in' do
       expect(F.foo).to eq 'Ffoo'
       expect(F.bar).to eq 'Fbar'
     end
-    example 'def class method for A class' do
+    example 'def class method for a class' do
       class G
         class << G
           def foo; 'Gfoo'; end
@@ -224,5 +224,25 @@ describe 'mix-in' do
       expect(G.foo).to eq 'Gfoo'
       expect(G.bar).to eq 'Gbar'
     end
+  end
+
+  describe 'Module singleton method' do
+    module M
+      def self.moo
+        'Mmoo'
+      end
+    end
+    class H
+      include M
+      extend  M
+    end
+    example 'the self means the Module, moo is the singleton method of M' do
+      expect(M.moo).to eq 'Mmoo'
+    end
+    example 'class H cant call moo' do
+      expect{(H.moo)}.to raise_error(NoMethodError)
+      expect{(H.new.moo)}.to raise_error(NoMethodError)
+    end
+
   end
 end
