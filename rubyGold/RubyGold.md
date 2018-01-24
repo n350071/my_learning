@@ -38,62 +38,104 @@
       * ②あやふやだと感じるところ
 
 ---
+# 対策ポイント
+* まとめた内容の定着
+* 添付ライブラリ
+* 正規表現の$0,$1,$2
+* {}とdo-endの()の省略可否(do-endは省略可)
+* Refine,using p.146
+* inject
+* Fiber
 
-# 重点対策ポイント別のまとめ
+
+
+---
+
+# 対策ポイント再整理
 ## オブジェクト指向
 
-### super
-  * super
-    * メソッドが受け取った引数をそのままスーパークラスに渡す
-      * スーパークラスでは`initialize(*)`というように無名オブジェクトの多重代入にしておくと、下位クラスで()をつけるかどうかを意識しなくて済む
-  * super()
-    * メソッドが受け取った引数を渡さない
+### [self](./self_spec.rb)
 
-### 継承チェーン
-  * Object < Kernel < BasicObject
-  * ancestors
-  * instance_methods(false) #スーパークラスを辿らない
-  * エイリアス
-    * Syntax
-      * メソッドではないので、`,`は不要
-      * メソッド名は識別子かシンボルで指定(文字列は不可)
-        * `alias new_method_name old_method_name`
-        * `alias new_global_name old_global_name`
-      * 定義前に書くとNameError
-    * Module#alias_method
-      * `alias_method :orig_exit, :exit`
-  * 定義取り消し
-    * undef <メソッド名>,<メソッド名>,<メソッド名>
-    * 定義前に書くとNameError
-  * 例
+位置 | 参照オブジェクト
+-- | --
+モジュール内 | そのモジュール
+クラス内 | そのクラス(newしたクラス?)
+クラスメソッド | レシーバ(=呼んでいるクラス, 定義しているクラスではない!!)
+インスタンスメソッド | レシーバ
+ブロック内 | 呼び出したオブジェクト
+トップレベル | Object(トップレベルはObjectクラス)
+
+注意
+```
+問題のselfはObjectクラスのインスタンスになります。
+Objectクラスには*メソッドが定義されていないためエラーになります。
+p [1,2,3,4].map(&self.method(:*))
+```
+
+### [super](./super_spec.rb)
+
+メソッド | 説明
+-- | --
+`super` | 引数をそのままスーパークラスへ渡す
+`super()` | 引数をスーパークラスへ渡さない
+`initialize(*)` | 無名の多重代入
+
+* 無名の多重代入
+  * 引数が多い場合→問題なく省く
+  * 引数が足りない場合→値がわからなくてエラーになる
+
+### public, protected, private
+* public
+  * どこからでもレシーバをつけて呼べる
+  * デフォルト
+* protected
+  * 自身
+  * サブクラスのインスタンス
+* private
+  * 自身
+  * レシーバは付加禁止
+  * 要注意のメソッド
+    * initialize
+    * トップレベルで定義されたメソッド
+* その他
+  * 可視性はサブクラスでオーバーライド可能
+  * メソッド名をシンボルで指定することも可能
     * ```
-      class Hoge
-        def huga1; end
-        def huga2; end
-        alias :huga3 :huga1
-        alias :huga4 :huga2
-        undef :huga2
-      end
-
-      p Hoge.instance_methods(false)
-      #=> [:huga1,:huga3, :huga4]
+      public  :xxx, :yyy
+      private :aaa, :bbb
       ```
-### オープンクラス
 
+### オープンクラス
+クラスを再定義して追加する。
 ```
 class Foo; end
-class Bar; end
-class Baz < Foo
-end
-class Baz < Bar #TypeError スーパークラスを指定してオープンする場合は、別のスーパクラスは定義できない
-end
-class Baz < Foo #ok
-end
-class Baz #ok
-end
+class Bar < Foo; end
+
+class Bar ; end      #ok:親を省略してもFooを引き継いだまま
+class Bar < XXX; end #TypeError:親はFooであり変更できない
 ```
 
-### [Mix-in](./mix_in_sprc.rb)
+### [エイリアスとundef](./alias-undef_spec.rb)
+* エイリアス式
+  * 対象
+    * メソッド
+    * グローバル変数
+  * Syntax
+    * メソッド名は識別子かシンボルで指定(文字列は不可)
+    * 定義前に書くとNameError
+* Module#alias_method
+  * `alias_method :orig_exit, :exit`
+* undef
+  * undef <メソッド名>,<メソッド名>,<メソッド名>
+  * 定義前に書くとNameError
+  * undefすると、継承・includeしたものすべて、そのクラスから完全に取り除く。親には影響しないが、そのクラスの全インスタンスから消える
+
+### [Mix-in, Inheritance Chain](./mix-in-and-inheritance-chain_spec.rb)
+
+* include
+* extend
+* prepend
+* `class << object`
 
 ### 変数と定数
 #### ローカル変数
@@ -377,6 +419,8 @@ p "wait"
 t.join # スレッドの終了を待ってから抜ける
 ```
 
+### Fiber
+
 ## その他
 ### 多重代入
 受け取ったあと`*`をつけると配列から展開。つけないと配列のまま
@@ -435,43 +479,8 @@ end
 bar(c:100,d:200)    #=>{:c=>100, :d=>200}
 bar({c:100,d:200})  #=>bar({c:100,d:200})
 
-＜例２＞
-
 ```
 
-
-### self
-
-位置 | 参照オブジェクト
--- | --
-クラス内 | newしたクラス
-メソッド内 | レシーバ
-ブロック内 |
-
-```
-問題のselfはObjectクラスのインスタンスになります。
-Objectクラスには*メソッドが定義されていないためエラーになります。
-p [1,2,3,4].map(&self.method(:*))
-
-class Foo
-  def foo
-    ary = [1,2,3,4]
-    ary.map(&self.method(:*))
-  end
-end
-Foo.new.foo #=>NameError: undefined method `*' for class `Foo'
-
-class Bar
-  def *(input)
-    input * input
-  end
-  def bar
-    ary = [1,2,3,4]
-    ary.map(&self.method(:*))
-  end
-end
-Bar.new.bar  #=>[1,4,9,16]
-```
 
 ### 演算子の優先順位
 * 短絡評価およびand,or、そしてシンタックスエラーの評価
@@ -484,19 +493,6 @@ Bar.new.bar  #=>[1,4,9,16]
 #### Comparable
 * Comparable#between?
 #### Enumerable
-
-### メソッドの可視性
-
-識別子 | 可視性
--- | --
-public  | any instance
-protected | self or instance of subclass
-private | self(レシーバ付呼出不可)
-
-* 可視性はサブクラスで変更可能
-* メソッド名をシンボルで指定することも可能
-  * `private :method1, :method2`
-* initializeは常にprivate
 
 
 ### 脱出・例外
@@ -579,7 +575,7 @@ p example
 
 ```
 
-### freeze
+### freeze, taint, clone, duplicate
 freezeはオブジェクトを凍結します。凍結されたオブジェクトは次の特徴があります。
 
 * 破壊的な操作ができません。
@@ -608,14 +604,9 @@ p hoge
 #### FileなどIO
 
 # 添付ライブラリ
+* require
+* load
+
 ## socket
 ## date
 ## stringio など
-
-
----
-３回目
-* CONSTをfreezeして変更する 1
-* `p [1,2,3,4].map(&self.method(:*))` 20
-* 30
-* 41なんで？
