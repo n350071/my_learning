@@ -1,5 +1,8 @@
-describe 'Mix-in and Inheritance Chain' do
+describe 'Mix-in' do
   module ModA
+    def self.mod
+      'self.ModA'
+    end
     def mod
       'ModA'
     end
@@ -18,6 +21,12 @@ describe 'Mix-in and Inheritance Chain' do
   end
 
   describe 'include' do
+    example 'クラスにモジュールのインスタンスメソッドを追加する' do
+      class IncludeC
+        include ModA
+      end
+      expect(IncludeC.new.mod).to eq 'ModA'
+    end
     describe '優先度' do
       example '縦に並べた場合は、あとにincludeした方が優先' do
         class IncludeA
@@ -34,6 +43,33 @@ describe 'Mix-in and Inheritance Chain' do
         expect(IncludeB.new.mod).to eq 'ModA'
         expect(IncludeB.ancestors).to eq [IncludeB,ModA,ModB,Object,Kernel,BasicObject]
       end
+    end
+  end
+
+  describe 'prepend' do
+    it 'そのオブジェクトのメソッドに優先して探索される' do
+      class Prepend_A
+        prepend ModA # ModAがPrepend_Aのインスタンスメソッドに優先する
+        def mod
+          'Prepend_A'
+        end
+      end
+      expect(Prepend_A.new.mod).to eq 'ModA'
+      expect(Prepend_A.ancestors).to eq [ModA, Prepend_A, Object, Kernel, BasicObject]
+    end
+    example 'super in prepended module means the class' do
+      module ModC
+        def mod
+          super #Prepend_2にprependされた状態でのsuperはPrepend_2を指す
+        end
+      end
+      class Prepend_2
+        prepend ModC
+        def mod
+          'Prepend_2'
+        end
+      end
+      expect(Prepend_2.new.mod).to eq ('Prepend_2')
     end
   end
 
@@ -75,11 +111,15 @@ describe 'Mix-in and Inheritance Chain' do
     end
   end
 
-
-  describe 'class << object' do
+  describe 'class <<' do
+    class Single
+      def mod
+        'Single'
+      end
+    end
     example 'メソッドを定義すると、そのオブジェクトに特異メソッドを作る' do
-      foo = Extend.new
-      bar = Extend.new
+      foo = Single.new
+      bar = Single.new
       class << foo
         def mod
           'singleton'
@@ -90,69 +130,30 @@ describe 'Mix-in and Inheritance Chain' do
       end
       expect(foo.mod).to eq 'singleton'
       expect(foo.special).to eq 'special'
-      expect(bar.mod).to eq 'Extend'
+      expect(bar.mod).to eq 'Single'
       expect{bar.special}.to raise_error (NoMethodError)
     end
-    example 'includeしても、そのオブジェクトの特異メソッドになる' do
-      foo = Extend.new
-      bar = Extend.new
+    example '特異クラスでのinclude = オブジェクト.extend' do
+      foo = Single.new
+      bar = Single.new
       class << foo
         include ModA
       end
       expect(foo.mod).to eq 'ModA'
-      expect(bar.mod).to eq 'Extend'
+      expect(bar.mod).to eq 'Single'
     end
-    example 'extendすると、クラスメソッドになる' do
-      foo = Extend.new
-      bar = Extend.new
+    example '特異クラスでextendすると、' do
+      foo = Single.new
+      bar = Single.new
       class << foo
         extend ModA
       end
-      expect(Extend.mod).to eq 'ModA'
-      expect(foo.mod).to eq 'Extend'
-      expect(bar.mod).to eq 'Extend'
+      expect(foo.mod).to eq 'Single'
+      expect(bar.mod).to eq 'Single'
     end
   end
 
-
-
-  describe 'prepend' do
-    it 'insert under the class' do
-      class C1
-        prepend ModA # ModAがC1のインスタンスメソッドに優先する
-        def mod
-          'C1'
-        end
-      end
-      class C2
-        include ModA
-        def mod
-          'C2'
-        end
-      end
-      expect(C1.new.mod).to eq 'ModA'
-      expect(C1.ancestors).to eq [ModA, C1, Object, Kernel, BasicObject]
-      expect(C2.new.mod).to eq 'C2'
-      expect(C2.ancestors).to eq [C2, ModA, Object, Kernel, BasicObject]
-    end
-    example 'super in prepended module means the class' do
-      module ModC
-        def mod
-          super + 'ModC' #C3にprependされた状態でのsuperはC3を指す
-        end
-      end
-      class C3
-        prepend ModC
-        def mod
-          'C3'
-        end
-      end
-      expect(C3.new.mod).to eq ('C3ModC')
-    end
-  end
-
-
-  describe 'method define method' do
+  describe 'method defined method' do
     example 'inside method isnt def until outside is run' do
       def foo
         def bar # fooが実行されるまで実行できない
@@ -174,8 +175,8 @@ describe 'Mix-in and Inheritance Chain' do
 
 
   describe 'class method' do
-    example 'def class method for ALL Class class' do
-      class Class #クラスクラスを再オープン
+    example 'クラスクラスを再オープンして全てのクラスクラスに有効なクラスメソッドを定義する' do
+      class Class #
         def hello
           'Hello World!'
         end
@@ -186,8 +187,8 @@ describe 'Mix-in and Inheritance Chain' do
       expect(Fixnum.hello).to eq 'Hello World!'
       expect(String.hello).to eq 'Hello World!'
     end
-    example 'def class method for ALL class' do
-      class Object #オブジェクトクラスを再オープン
+    example 'オブジェクトクラスを再オープンして全てのオブジェクトに有効なクラスメソッドを定義' do
+      class Object
         def hello
           'Hello World!'
         end
@@ -238,7 +239,7 @@ describe 'Mix-in and Inheritance Chain' do
     end
   end
 
-  describe 'Module singleton method' do
+  describe 'モジュールのクラスメソッド' do
     module M
       def self.moo
         'Mmoo'
@@ -248,10 +249,10 @@ describe 'Mix-in and Inheritance Chain' do
       include M
       extend  M
     end
-    example 'the self means the Module, moo is the singleton method of M' do
+    example 'モジュールから呼べる' do
       expect(M.moo).to eq 'Mmoo'
     end
-    example 'class H cant call moo' do
+    example 'インクルード、extendしてもクラスからは呼べない' do
       expect{(H.moo)}.to raise_error(NoMethodError)
       expect{(H.new.moo)}.to raise_error(NoMethodError)
     end

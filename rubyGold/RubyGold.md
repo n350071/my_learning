@@ -106,10 +106,10 @@ p [1,2,3,4].map(&self.method(:*))
       ```
 
 ### オープンクラス
-クラスを再定義して追加する。
+クラスを再定義する。
 ```
 class Foo; end
-class Bar < Foo; end
+class Bar < Foo; end # < は継承の意味。<<と混同して混乱しないように!
 
 class Bar ; end      #ok:親を省略してもFooを引き継いだまま
 class Bar < XXX; end #TypeError:親はFooであり変更できない
@@ -133,142 +133,39 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
 ### [Mix-in, Inheritance Chain](./mix-in-and-inheritance-chain_spec.rb)
 
 * include
-* extend
+  * クラスにモジュールのインスタンスメソッドを追加する
 * prepend
-* `class << object`
+  * クラスにモジュールのインスタンスメソッドを追加する(そのオブジェクト自身のメソッドに優先して探索される)
+* extend
+  * オブジェクトにモジュールのインスタンスメソッドを追加する
+* `class <<`
+  * オブジェクトのシングルトンクラスにアクセスする
+  * [公式リファレンス](https://ruby-doc.org/core-2.5.0/doc/syntax/modules_and_classes_rdoc.html#label-Singleton+Classes)
+* method中で定義されるメソッド
+  * 外側のメソッドが呼ばれるまで定義されない
+* Refinements
+  * module <モジュール>; refine <クラス> do ~ end; end : ターゲットとするクラスと、変更内容を書く
+  * using <モジュール> : 変更実施()
 
-### 変数と定数
+### [変数と定数](./valiable_spec.rb)
 #### ローカル変数
-```
-v1 = 1
-class Scope
-  v2 = 2
-  def getV1
-    v1        #クラス外の変数
-  end
-  def getV2
-    v2        #クラス定義とインスタンスメソッドはそれぞれ独立したスコープを持つ
-  end
-end
-
-s = Scope.new
-s.getV1 #=> NameError
-s.getV2 #=> NameError
-```
-
 #### インスタンス変数
-未初期化→nil
-```
-@v1 = 1
-class Scope
-  @v2 = 2
-  def method1
-    @v1
-  end
-  def method2
-    @v2
-  end
-  def v3　#メソッドで定義しているので、サブクラスからも参照できる
-    @v3
-  end
-  def v3=(val)
-    @v3=val
-  end
-  attr_accessor :v4 #メソッドで定義しているので、サブクラスからも参照できる
-end
-
-s = Scope.new
-p s.method1 #=> nil
-p s.method2 #=> nil
-s.v3=3
-s.v4=4
-p s.v3 #=>3
-p s.v4 #=>4
-```
-
 #### クラス変数
 サブクラスで同名のクラス変数を定義した場合、それは代入であり、上位クラスのクラス変数の値変更にほかならないことに注意。
 
 #### 定数
-* 再代入
-  * 可能
-  * 警告が出る
-* 中身の直接変更
-  * 可能
-  * 警告なし
-  * `CONST[0] = "A" #=> ["A",2,3]`
-* メソッド内
-  * 定義不可
-  * 再代入不可
+* 警告が出るが、再代入可能
+* メソッド内では定義も再代入もSyntaxError
 * :: (二重コロン記法)
-  * ```
-    class Foo; end
-    class Bar; end
-
-    Foo::Con      = 1 #=>FooクラスにCon定数
-    Foo::Con::Con = 2 #=>TypeError: 1 is not a class/module
-
-    Foo::Bar      = Bar
-    Foo::Bar::Con = 3 #=>FooクラスのBarクラスにCon定数を定義
-    ::Foo::Bar
-
-    Foo.constants          #=> [:Con,:Bar]
-    Bar.constants          #=> [:Con]
-    Foo::Con == ::Foo::Con #=> true(ルートから参照)
-    ```
 * 探索
-  * ネストの内側に見つからなければ、ネストの外側に向かって探索する
-    * つまり、親やモジュールで宣言された定数はサブクラスやincludeしたクラスから参照できる
-  * ```
-    class Foo; A=1; end
-    module Bar; B=2; end
-    class FooExt < Foo
-      include Bar
-      p A #=>1
-      p B #=>2
-      p C #=>NameError: uninitialized constant FooExt::C
-    end
-    class FooConstMissiing
-      def self.const_missing(id) #クラスメソッドとして定義すること！(インスタンスメソッドだとNameError)
-        3
-      end
-    end
-    FooConstMissiing::D #=>3
-    ```
 
 
 ## [ブロック](./block_spec.rb)
 ### Block, Proc, lambda
-* ブロックは、メソッドコールの時にのみ書ける
-  * `func(1){p 'Here is block'}`
-* ブロックは、新たにスコープを作成する
-  * ブロック内で初期化した変数は、ブロック終了と共に消滅する(外部から参照できない)
-    * `func(1){x+=2}; p x #=> NameError`
-  * ブロック外の変数をブロック内で評価・更新が可能
-    * `x=2; func(1){x+=2}; p x #=> 4`
-    * {}ブロックの中に、xも閉じ込める(クロージャー)している
-      * クロージャーとは生成時の環境を閉じ込める仕組みを一般的に指す言葉
-* ブロックの定義
-  * `{}` or `do end`
-  * 引数
-    * 仮引数 `||` で指定
-    * 実引数 `yield`で指定
-      * ```
-        def func a,b
-          a + yield(b,3)
-        end
-        p func(1,2){|x,y| x+y} #=>6
-        ```
+* {}とdo endの結合度
+  * {}は()をつけないと引数より先に計算
+  * do-endは()をつけてもつけなくても一緒
 * block_given?
-  * ブロックが指定されたかどうかで処理を分けることができる
-  * ```
-    def func
-      return 1 if block_given?
-      2
-    end
-    p func(){} #=>1
-    p func     #=>2
-    ```
 * Proc
   * ローカル変数に紐付けられたブロックのオブジェクト
   * ブロックは
@@ -365,31 +262,7 @@ p s.v4 #=>4
     # 1
     # 2
     ```
-  * {}とdo endの結合度
-    ```
-    def m1(*)
-      str = yield if block_given?
-      p "m1 #{str}"
-    end
 
-    def m2(*)
-      str = yield if block_given?
-      p "m2 #{str}"
-    end
-
-    m1 m2 {
-      "hello"
-    }
-    #=> m2 hello
-    #=> m1
-
-    m1 m2 do
-      "hello"
-    end
-    #=> m2
-    #=> m1 hello
-
-    ```
 
 ### スレッド
 
