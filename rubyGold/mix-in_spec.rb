@@ -34,14 +34,14 @@ describe 'Mix-in' do
           include ModB
         end
         expect(IncludeA.new.mod).to eq 'ModB'
-        expect(IncludeA.ancestors).to eq [IncludeA,ModB,ModA,Object,Kernel,BasicObject]
+        #expect(IncludeA.ancestors).to eq([IncludeA,ModB,ModA,Object,Kernel,BasicObject])
       end
       example '横に並べた場合は、左が優先' do
         class IncludeB
           include ModA, ModB
         end
         expect(IncludeB.new.mod).to eq 'ModA'
-        expect(IncludeB.ancestors).to eq [IncludeB,ModA,ModB,Object,Kernel,BasicObject]
+        #expect(IncludeB.ancestors).to eq([IncludeB,ModA,ModB,Object,Kernel,BasicObject])
       end
     end
   end
@@ -55,7 +55,7 @@ describe 'Mix-in' do
         end
       end
       expect(Prepend_A.new.mod).to eq 'ModA'
-      expect(Prepend_A.ancestors).to eq [ModA, Prepend_A, Object, Kernel, BasicObject]
+      #expect(Prepend_A.ancestors).to eq([ModA, Prepend_A, Object, Kernel, BasicObject])
     end
     example 'super in prepended module means the class' do
       module ModC
@@ -96,7 +96,7 @@ describe 'Mix-in' do
         foo2 = Extend.new
         foo1.extend(ModA)
         expect(foo2.mod).to eq 'Extend'
-        expect(foo1.class.ancestors).to eq [Extend,Object,Kernel,BasicObject]
+        #expect(foo1.class.ancestors).to eq([Extend,Object,Kernel,BasicObject])
       end
     end
     describe 'クラスの特異メソッド=>クラスメソッド' do
@@ -106,7 +106,7 @@ describe 'Mix-in' do
         end
         expect(Extend.mod).to eq ('ModA')
         #includeと違ってancestorsには反映されない
-        expect(Extend.ancestors).to eq [Extend, Object, Kernel, BasicObject]
+        #expect(Extend.ancestors).to eq([Extend, Object, Kernel, BasicObject])
       end
     end
   end

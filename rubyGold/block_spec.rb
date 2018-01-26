@@ -24,10 +24,111 @@ describe 'block' do
     expect(Block.new.block_c).to eq 'no block'
     expect(Block.new.block_c{'block given'}).to eq 'block given'
   end
+  example '自作のクラスにmapを実装する' do
+    class MyClass
+      include Enumerable
+      attr_accessor :array
+      def initialize
+        @array = []
+      end
+      def <<(val)
+        @array << val
+      end
+      def map(&block)
+        @array.map(&block)
+      end
+    end
+    mine = MyClass.new
+    mine<<1 <<2 <<3
+    new_ary = mine.map{|me| me * me}
+    expect(new_ary).to eq [1,4,9]
+  end
+end
+
+describe 'Proc' do
+  class Proc_sample
+    def a_plus_b a,b
+      Proc.new{a+b}.call
+    end
+  end
+  describe 'Procとyieldの違い' do
+    example 'クロージャーの要件は同じで、ブロックを実行するだけのメソッドは不要' do
+      x = 1
+      expect(Proc.new{y=2; x+=y}.call).to eq 3
+      expect(x).to eq 3 # xを環境としてclosure内に閉じ込めた
+      expect{y}.to raise_error (NameError)
+    end
+    example 'ブロックに引数を渡すときも、メソッド不要' do
+      expect(Proc.new{|a,b| a+b}.call(1,2)).to eq 3
+    end
+    example '予め定義しておくことも可能' do
+      expect(Proc_sample.new.a_plus_b(1,2)).to eq 3
+    end
+  end
+  example 'Proc.new()はエラー' do
+    expect{Proc.new({})}.to   raise_error (ArgumentError)
+    expect{Proc.new()}.to     raise_error (ArgumentError)
+    expect{Proc.new}.to raise_error (ArgumentError)
+    #okのパターン
+    expect(Proc.new{}.class).to eq Proc
+  end
+  example 'ブロックの実行方法は４つ' do
+    proc = Proc.new{|str| "#{str}"}
+    str = "Hello!"
+    expect(proc.call(str)).to   eq str
+    expect(proc.(str)).to       eq str # メソッドコールと違い.がつくことに注意する
+    expect(proc.yield(str)).to  eq str # .yieldでも呼び出せる
+    expect(proc[str]).to        eq str # []のときは.がつかない
+
+    #以下はメソッドコール ()の.の違いに要注意！
+    expect{proc(str)}.to raise_error (ArgumentError)
+    expect{proc str}.to raise_error (ArgumentError)
+  end
+  example 'Procは引数の数にこだわらない' do
+    proc = Proc.new{|str| "#{str}"}
+    str = "Hello!"
+    expect(proc.call(str,str)).to   eq str
+    expect(proc.()).to              eq ""
+  end
+  example 'arityで引数の数を確認できる' do
+    proc = Proc.new{|str| "#{str}"}
+    expect(proc.arity).to eq 1
+  end
+  describe 'Procをブロックとしてメソッドに渡す' do
+    example '&blockは１番最後の引数' do
+      def func x, &block
+        x + block.call
+      end
+      # SyntaxError
+      #def bunc &block, x
+      #  x + block.call
+      #end
+      proc = Proc.new{2}
+      expect(func(1,&proc)).to eq 3
+    end
+  end
+  describe '中断とリターンとブレイク' do
+    example 'ブロックの中断' do
+      proc = Proc.new{
+        |x,y|
+          if x > y then
+            next x
+          end
+        y
+      }
+      expect(proc.(2,1)).to eq 2
+    end
+    example 'break,return' do
+      expect{Proc.new{break}.()}.to raise_error (LocalJumpError)
+      expect{Proc.new{return}.()}.to raise_error (LocalJumpError)
+      expect(lambda{break''}.call).to  eq ''
+      expect(lambda{return ''}.call).to eq ''
+    end
+  end
 end
 
 describe '{} vs do-end' do
-  class Vs
+  class BracesVsRoundBrackets
     def m1 (input=nil)
       str = yield if block_given?
       "#{input}m1#{str}"
@@ -36,86 +137,41 @@ describe '{} vs do-end' do
       str = yield if block_given?
       "#{input}m2#{str}"
     end
-    def block_to_m2_1
+    def braces_win
       m1 m2 {"hello"}
     end
-    def block_to_m2_2
+    def write_round_brackets_for_doend
       m1 (m2 do "hello" end)
     end
-    def block_to_m1_1
+    def write_round_brackets_win_to_braces
       m1(m2){"hello"}
     end
-    def block_to_m1_2
+    def doend_loose
       m1 m2 do "hello" end
+    end
+    def m3 (str)
+      yield(str)
+    end
+    def braces_with_no_round_brackets
+    # m3 "hey" {|str| "#{str}"}
+    # #=> SyntaxError
+    # #=> it should be
+      m3("hey"){|str| "#{str}"}
+    end
+    def doend_with_no_round_brackets
+      m3 "hey" do |str| "#{str}" end
     end
   end
   example '{}はメソッドの引数に優先するが、do-endは劣る' do
-    expect(Vs.new.block_to_m2_1).to eq 'm2hellom1'
-    expect(Vs.new.block_to_m2_2).to eq 'm2hellom1'
+    expect(BracesVsRoundBrackets.new.braces_win).to eq 'm2hellom1'
+    expect(BracesVsRoundBrackets.new.write_round_brackets_for_doend).to eq 'm2hellom1'
   end
   example '{}は明示的に引数を書くと引数が優先されるが、do-endは明示しなくても引数がブロックに優先する' do
-    expect(Vs.new.block_to_m1_1).to eq 'm2m1hello'
-    expect(Vs.new.block_to_m1_2).to eq 'm2m1hello'
+    expect(BracesVsRoundBrackets.new.write_round_brackets_win_to_braces).to eq 'm2m1hello'
+    expect(BracesVsRoundBrackets.new.doend_loose).to eq 'm2m1hello'
   end
-end
-
-describe 'Block_old' do
-
-  attr_reader :count_obj
-
-  before :each do
-  end
-
-  describe 'closure' do
-    describe 'scope' do
-      it 'remember the valiable number' do
-        def count
-          number = 0 #<= block外のローカル変数
-          func = lambda{|i| number += i}
-          func
-        end
-
-        @count_obj = count
-        expect(count_obj.call(1)).to eq 1
-        expect(count_obj.call(1)).to eq 2
-      end
-    end
-    describe 'call' do
-      it 'call only the block' do
-        def hello
-          str = 'Hello World!'
-          functional_object = lambda do
-            str = 'Hello from block'
-          end
-          str = 'Hello from closure'
-          functional_object
-        end
-        hello_obj = hello
-        expect(hello_obj.call).to eq 'Hello from block'
-      end
-    end
-    describe 'small block' do
-      example 'block is just {2}' do
-        def func x
-          x + yield
-        end
-        expect(func(1){2}).to eq 3
-      end
-    end
-    describe 'Proc with no block' do
-      example 'Proc.new and pass it' do
-        def proc_form
-          Proc.new
-        end
-        proc = proc_form{'hello'}
-        expect(proc.call).to eq 'hello'
-      end
-      example 'Proc.new and run it' do
-        def proc_form
-          Proc.new
-        end
-        expect(proc_form{'hello'}.call).to eq 'hello'
-      end
-    end
+  example '{}とdo-endの引数の省略' do
+    expect(BracesVsRoundBrackets.new.braces_with_no_round_brackets).to eq "hey"
+    expect(BracesVsRoundBrackets.new.doend_with_no_round_brackets).to eq "hey"
   end
 end

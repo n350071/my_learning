@@ -15,6 +15,7 @@
   * http://www.ruby.or.jp/ja/certification/examination/rex
     * 1回目:54%
     * 2回目:76%
+  * [ITトレメ](http://jibun.atmarkit.co.jp/scenter/ittrain/121_cal.html)
 * Extra
   * 関数型プログラミング
     * [可変性の回避 ― Rubyへの関数型プログラミングスタイルの適用](http://postd.cc/avoid-mutation-functional-style-in-ruby/)
@@ -47,11 +48,18 @@
 * inject
 * Fiber
 
-
-
 ---
 
 # 対策ポイント再整理
+## 実行時オプション
+* -c 文法的に正しいかのcheck
+* -e 文字列をRubyとしてexecute
+* -w 冗長モードでwarningが出る
+* -W0, -W1, -W2(= -W) 出力範囲を指定したWarning
+* -l $LOAD_PATHに文字列追加
+* -r 実行前にrequire(実行する)
+* -d debugモード
+
 ## オブジェクト指向
 
 ### [self](./self_spec.rb)
@@ -130,7 +138,7 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
   * 定義前に書くとNameError
   * undefすると、継承・includeしたものすべて、そのクラスから完全に取り除く。親には影響しないが、そのクラスの全インスタンスから消える
 
-### [Mix-in, Inheritance Chain](./mix-in-and-inheritance-chain_spec.rb)
+### [Mix-in](./mix-in_spec.rb)
 
 * include
   * クラスにモジュールのインスタンスメソッドを追加する
@@ -162,65 +170,11 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
 
 ## [ブロック](./block_spec.rb)
 ### Block, Proc, lambda
+* block_given?
 * {}とdo endの結合度
   * {}は()をつけないと引数より先に計算
   * do-endは()をつけてもつけなくても一緒
-* block_given?
 * Proc
-  * ローカル変数に紐付けられたブロックのオブジェクト
-  * ブロックは
-    * コンストラクタで渡す
-    * 実行時に渡す
-  * 例
-    * ```
-      def gen_times(factor)
-        return Proc.new {|n| n*factor }
-      end
-
-      times3 = gen_times(3)
-      times5 = gen_times(5)
-
-      times3.call(12)               #=> 36
-      times5.call(5)                #=> 25
-      times3.call(times5.call(4))   #=> 60
-      ```
-  * Proc#call
-    * blockを呼び出す
-    * Procを格納した変数名と同名のメソッドがあっても、この変数名の方が優先されて呼ばれる
-      * ```
-        def proc(x); p "func #{x}"; end
-        proc = Proc.new{|x|p "proc #{x}"}
-        proc.call(2)   #=> "proc 2"
-        proc[2]        #=> "proc 2"
-        proc.(2)       #=> "proc 2"
-        proc.yield(2)  #=> "proc 2"
-        proc(2)        #=> "func 2"
-        proc 2         #=> "func 2"
-        ```
-    * シンタックスシュガー `proc = Proc.new{|times, *args| args.map{|val| val * times}}`
-      * `proc.call(9,1,2,3)   #=>[9,18,27]`
-      * `proc[9,1,2,3]        #=>[9,18,27]`
-      * `proc.(9,1,2,3)       #=>[9,18,27]`
-      * `proc.yield(9,1,2,3)  #=>[9,18,27]`
-    * callの引数は、ブロックの引数になる
-      * 引数の数が足りなければ、nilを代入するのでエラーにならない
-      * 引数の数が多ければ、無視する
-  * Proc#arity
-    * 引数の数を取得
-  * next
-    * 手続きオブジェクト内で処理を中断し、呼び出し元へ最後の評価値を返す
-    * ```
-      f = Proc.new{next 'next'; 'last'}
-      f.call #=> 'next'
-      ```
-* Procとブロックの相互変換
-  * Proc→ブロック
-    * &をつけて引数の最後に指定する
-      * `proc=Proc.new{2}; func(1,&proc)`
-  * ブロック→Proc
-    * 最後の仮引数に&を付けた名前を指定する
-    * 参照時は&を外す
-      * `def func x, &proc; x + proc.call; end`
   * ブロック中のリターン
     * 生成元のスコープを脱出する
       * トップレベルで生成したブロックであれば、脱出先がないのでエラー
@@ -234,65 +188,111 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
   * ブロック中に呼び出し元に戻る
     * return
     * break
-* 自分で定義したクラスに、ブロックを受けるeachメソッドを定義する
-  * ```
-    class Result
-      include Enumerable
-
-      def initialize
-          @results_array = []
-      end
-
-      def <<(val)
-          @results_array << val
-      end
-
-      def each(&block)
-          @results_array.each(&block)
-      end
-    end
-    ---
-    r = Result.new  
-    r << 1
-    r << 2
-    r.each { |v|
-      p v
-    }
-    #print:
-    # 1
-    # 2
-    ```
-
 
 ### スレッド
-
-* Thread initialization
-  * ::new
-    * `{...}` -> thread
-    * `::new(*args,&proc)` -> thread
-    * `new(*args){|args|...}` -> thread
-  * ::start
-    * `([args]*){|args|block}` -> thread
-  * ::fork
-    * `([args]*){|args|block}` -> thread
-* Thread termination
-  * #kill(thread)
-* scope
-  * same as block
-* Any threads not joined will be killed when the main program exits.
-  * `thread.join`
-
-```
-t = Thread.new do  #スレッド生成、Thread.new,Thread.start,Thread.fork
-  p "thread start"
-  sleep 5 # 5sec
-  p "thread end"
-end
-p "wait"
-t.join # スレッドの終了を待ってから抜ける
-```
+* スレッドの生成
+  * Thread.new(x){|x| x+1}
+  * Thread.start(x){|x| x+1}
+  * Thread.fork(x){|x| x+1}
+* スレッドの状態
+  * run 実行中or実行可能状態
+  * sleep 一時停止状態
+  * aborting 終了処理中
+  * false 正常終了
+  * nil 例外など異常終了
+* 状態確認
+  * status
+  * alive?
+  * Thread.list
+  * Thread.min
+  * Thread.current
+  * Thread.pass 実行中の状態を変えずに他のスレッドに実行権を譲る
+* 即実行する
+  * run
+* 実行可能状態にする
+  * wakeup
+* 一時停止
+  * sleep
+  * joinで待っている時
+  * Thread.stop
+* 終了
+  * kill
+  * exit
+  * Thread.kill
+  * Thread.exit
+  * ensure節
+    * 正常終了処理(kill/exit)
+  * rescue節
+    * 例外時処理
+  * rescue節がない場合
+    * 警告なしで終了
+    * joinで待っているスレッドがあればそちらへ波及
+* 優先度
+  * priority
+  * priority=(Fixnum)
+* スレッド内のデータ
+  * t = Thread.current
+  * t[:foo]="bar"
+  * t.key?(:foo) #=> true
+  * t.keys       #=> [:foo]
 
 ### Fiber
+* 生成
+  * f = Fiber.new
+* 実行する
+  * f.resume
+* 実行権限を戻す
+  * Fiber.yield
+
+
+## 組み込みクラス
+### Regexp
+* オプション
+  * i, Regexp::IGNORECASE 1
+  * x, Regexp::EXTENDED   2
+  * m, Regexp::MULTILINE  4
+* マッチング
+  * match -> MatchData / nil
+  * =~ -> index / nil
+  * === -> true / false
+  * ~ Regexp.new("abc") -> index / nil (最後にget,readlineした値が入る特殊変数と突き合わせる`$_`)
+* 正規表現の生成
+  * /abc/
+  * Regexp.new("abc")
+  * Regexp.compile("abc")
+  * Regexp.escape("abc.()[]")
+  * Regexp.quote("abc.()[]")
+* マッチした結果の取得
+  * last_match -> MatchData
+    * `$~`
+    * last_match(0)
+  * last_match(1)
+    * $1
+  * last_match(2)
+    * $2
+* 正規表現の論理和
+  * Regexp.union(/abc/,/ABC/) -> abc,ABCのどちらかにマッチする正規表現
+* 正規表現オブジェクトのオプションや属性の取得
+  * options   -> 指定したオプションの論理和
+  * casefold? -> Regexp::IGNORECASEが指定されているか？
+  * encoding  -> #<Encoding:UTF-8>
+  * souce     例(/a/.source   #=> "a")
+  * inspect   例(/a/.inspect  #=> "/a/")
+  * to_s      例(/a/.to_s     #=> "(?-mix:a)")
+
+### マーシャル
+* 概要
+  * オブジェクトを文字列化する
+  * セッション変数やクッキーをDBに保存するときなどに使う
+  * 書き出せないクラスに制限
+  * 書き出すオブジェクトに制限
+* オブジェクトを文字列化する書き込む
+  * Marshal.dump({:a=>1,:b=>2,:c=>3},file)
+  * str = Marshal.dump({:a=>1,:b=>2,:c=>3})
+* 復元する
+  * Marshal.load(file)
+  * Marshal.load(str)
+
 
 ## その他
 ### 多重代入
@@ -310,26 +310,24 @@ def bar *b
 end
 bar(1,2)
 #=>[1,2]
-```
 
-無名の可変長引数
-```
+x, *y = *[0,1,2] #=>  x=0, y=[1,2] #右辺の*は無視してよい
+
+#無名の可変長引数
 def initialize(*) #サブクラスでsuperとしてエラーにならないので、意識しなくてよくなる
 end
 ```
 
 ### Date,Time,DateTime
-
-演算 | 戻り値クラス
-Time同士の減算 |	Float
-Date同士の減算 | Rational
-DateTime同士の減算 |	Rational
-DateTime.now-Date.today | Rational
-Time.now - DateTime.now など | convertエラー
+```
+require 'date'
+(Time.now - Time.new).class       #=>	Float
+(Date.today - Date.new).class     #=> Rational
+(DateTime.now - Date.today).class #=> Rational
+Time.now - DateTime.now           #=> ConvertError
+```
 
 ### キーワード引数
-* 引数名:デフォルト値
-
 ```
 def foo(a:, b: 100)
  a + b
@@ -342,16 +340,23 @@ foo(a:2,b:3,c:4)  #=>ArgumentError cなんてない
 foo(3,3)          #=>ArgumentError: wrong number of arguments
 ```
 
-* 仮引数に`**`をつけておくと、ハッシュを受け取れる
+* 仮引数に`**`をつけておくと、ハッシュを期待する
 
 ```
 ＜例１＞
+def foo(z)
+  z                 
+end
+foo(c:100,d:200)    #=>{:c=>100, :d=>200}
+foo({c:100,d:200})  #=>{:c=>100, :d=>200}
+foo 1               #=>1
+
 def bar(**z)
   z                 # *z,**z はSyntaxError
 end
 bar(c:100,d:200)    #=>{:c=>100, :d=>200}
-bar({c:100,d:200})  #=>bar({c:100,d:200})
-
+bar({c:100,d:200})  #=>{:c=>100, :d=>200}
+bar 1               #=>ArgumentError: wrong number of arguments
 ```
 
 
@@ -360,13 +365,13 @@ bar({c:100,d:200})  #=>bar({c:100,d:200})
   * ```true or raise RuntimeError```
   * ```false and raise RuntimeError```
 ### 範囲演算子の条件式
-* 範囲演算子の条件式の詳細
-  * `d<2..d>5` と `d<2...d>5` の違い
+* [範囲演算子の条件式の詳細](https://docs.ruby-lang.org/ja/2.1.0/doc/spec=2foperator.html#range)
+  * `d<2..d>5`
+    * d=0のときd<2だけを見てtrueを返し、d>5がtrueであればd<2を計算するが、d>2がfalseなのですぐにd>5になるまでtrueを返し続け、d>5になったタイミングでfalseを返して、またd<2だけを見るようになる
+  * `d<2...d>5`
+    * d=0のときd<2だけを見てtrueを返し、d>5になるまでtrueを返し続け、d>5になったタイミングでfalseを返して、またd<2だけを見るようになる  
 ### Module
-#### Comparable
-* Comparable#between?
-#### Enumerable
-
+[RubySilverを参照](../rubySilver/RubySilver.md)
 
 ### 脱出・例外
 #### 脱出構文(loopから抜ける)
@@ -378,35 +383,15 @@ bar({c:100,d:200})  #=>bar({c:100,d:200})
 | redo | 現在のループを繰り返す | 5回目のループをもう一度
 
 #### 例外処理
-例外クラスの継承関係
-* Exception
-  * SignalException
-  * ScriptError
-    * SyntaxError
-  * StandardError
-      * ArgumentError
-      * RuntimeError *デフォルト*
-      * ZeroDivisionError
-      * NameError
-        * NoMethodError
+[例外クラスの継承関係](./error_spec.rb)
 
 例外オブジェクトのメソッド
+* new / exeption
 * message
+* to_s
+* to_str
 * backtrace
 * rase (最後に発生した例外をもう一度投げる..呼び出し元に委ねる)
-
-```
-def ex
-  begin
-    raise
-  rescue => e
-    e.backtrace
-  end
-end
-ex #=>["(irb):17:in `ex'", "(irb):22:in `irb_binding'", "/System/Library/Frameworks/Ruby.framew...
-...irb.rb:394:in `start'", "/usr/bin/irb:11:in `<main>'"]
-```
-
 
 #### 大域脱出(throw, catch)
 
@@ -449,36 +434,39 @@ p example
 ```
 
 ### freeze, taint, clone, duplicate
-freezeはオブジェクトを凍結します。凍結されたオブジェクトは次の特徴があります。
+#### Object#freeze
+* Prevents further modifications to obj.
+  * 破壊的な操作が不可
+    * ```
+      hoge = "hoge".freeze
+      hoge.upcase!          #=> RuntimeError
+      ```
+  * 代入はできる
+    * ```
+      hoge = "hoge".freeze
+      hoge = "foo"          #=> "foo"
+      ```
+* There is no way to unfreeze a frozen object.
+  * frozen?で確認することはできる
+    * ```
+      hoge = "hoge".freeze
+      hoge.frozen?          #=> true
+      ```
+#### 汚染
+* taint
+  * Objects that are marked as tainted will be restricted from various built-in methods.
+* untaint
+  * remove the mark
+* tainted?
 
-* 破壊的な操作ができません。
-* オブジェクトの代入ができます。
-* 自作クラスのインスタンス変数をfreezeしない限り、変更できます。
+#### 複製
 
-```
-# 破壊的操作ができない例
-hoge = "hoge".freeze
-hoge.upcase!
-p hoge
+method | taint | object_id  | 要素のobject_id  | 特異メソッド   | frozen?
+--     | --    | --         | --              | --           | --    
+clone  | copy  | 異なる      | 同じ             | コピーする    | コピーする  
+dup    | copy  | 異なる      | 同じ             |             |       
 
-# <実行結果>
-# RuntimeError: can't modify frozen String
-
-# オブジェクトの代入ができる例
-hoge = "hoge".freeze
-hoge = "foo".freeze
-p hoge
-
-# <実行結果>
-# foo
-```
-
-
-#### FileなどIO
-
-# 添付ライブラリ
-* require
-* load
+#### DATA `__END__`
 
 ## socket
 ## date
