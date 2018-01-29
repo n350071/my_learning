@@ -46,11 +46,6 @@ describe 'block' do
 end
 
 describe 'Proc' do
-  class Proc_sample
-    def a_plus_b a,b
-      Proc.new{a+b}.call
-    end
-  end
   describe 'Procとyieldの違い' do
     example 'クロージャーの要件は同じで、ブロックを実行するだけのメソッドは不要' do
       x = 1
@@ -62,6 +57,11 @@ describe 'Proc' do
       expect(Proc.new{|a,b| a+b}.call(1,2)).to eq 3
     end
     example '予め定義しておくことも可能' do
+      class Proc_sample
+        def a_plus_b a,b
+          Proc.new{a+b}.call
+        end
+      end
       expect(Proc_sample.new.a_plus_b(1,2)).to eq 3
     end
   end
@@ -73,26 +73,26 @@ describe 'Proc' do
     expect(Proc.new{}.class).to eq Proc
   end
   example 'ブロックの実行方法は４つ' do
-    proc = Proc.new{|str| "#{str}"}
+    prc = Proc.new{|str| "#{str}"}
     str = "Hello!"
-    expect(proc.call(str)).to   eq str
-    expect(proc.(str)).to       eq str # メソッドコールと違い.がつくことに注意する
-    expect(proc.yield(str)).to  eq str # .yieldでも呼び出せる
-    expect(proc[str]).to        eq str # []のときは.がつかない
+    expect(prc.call(str)).to   eq str
+    expect(prc.(str)).to       eq str # メソッドコールと違い.がつくことに注意する
+    expect(prc.yield(str)).to  eq str # .yieldでも呼び出せる
+    expect(prc[str]).to        eq str # []のときは.がつかない
 
     #以下はメソッドコール ()の.の違いに要注意！
-    expect{proc(str)}.to raise_error (ArgumentError)
-    expect{proc str}.to raise_error (ArgumentError)
+    expect{prc(str)}.to raise_error (NoMethodError)
+    expect{prc str}.to raise_error (NoMethodError)
   end
   example 'Procは引数の数にこだわらない' do
-    proc = Proc.new{|str| "#{str}"}
+    prc = Proc.new{|str| "#{str}"}
     str = "Hello!"
-    expect(proc.call(str,str)).to   eq str
-    expect(proc.()).to              eq ""
+    expect(prc.call(str,str)).to   eq str
+    expect(prc.()).to              eq ""
   end
   example 'arityで引数の数を確認できる' do
-    proc = Proc.new{|str| "#{str}"}
-    expect(proc.arity).to eq 1
+    prc = Proc.new{|str| "#{str}"}
+    expect(prc.arity).to eq 1
   end
   describe 'Procをブロックとしてメソッドに渡す' do
     example '&blockは１番最後の引数' do
@@ -103,20 +103,20 @@ describe 'Proc' do
       #def bunc &block, x
       #  x + block.call
       #end
-      proc = Proc.new{2}
-      expect(func(1,&proc)).to eq 3
+      prc = Proc.new{2}
+      expect(func(1,&prc)).to eq 3
     end
   end
   describe '中断とリターンとブレイク' do
     example 'ブロックの中断' do
-      proc = Proc.new{
+      prc = Proc.new{
         |x,y|
           if x > y then
             next x
           end
         y
       }
-      expect(proc.(2,1)).to eq 2
+      expect(prc.(2,1)).to eq 2
     end
     example 'break,return' do
       expect{Proc.new{break}.()}.to raise_error (LocalJumpError)
@@ -124,6 +124,42 @@ describe 'Proc' do
       expect(lambda{break''}.call).to  eq ''
       expect(lambda{return ''}.call).to eq ''
     end
+  end
+end
+
+describe 'lambda' do
+  describe '生成方法' do
+    example 'Procと同じように引数を{}内に書く方法' do
+      lmd = lambda{|a,b| a+b}
+      expect(lmd.call(1,2)).to eq 3
+    end
+    example '->を使うときは引数は外、do-endも使える' do
+      lmd = ->(a,b) do
+        a+b
+      end
+      expect(lmd.call(1,2)).to eq 3
+    end
+  end
+  example 'callのシンタックスシュガー' do
+    lmd = ->(str){"#{str}"}
+    str = "Hello!"
+    expect(lmd.call(str)).to   eq str
+    expect(lmd.(str)).to       eq str # メソッドコールと違い.がつくことに注意する
+    expect(lmd.yield(str)).to  eq str # .yieldでも呼び出せる
+    expect(lmd[str]).to        eq str # []のときは.がつかない
+
+    #以下はメソッドコール ()の.の違いに要注意！
+    expect{lmd(str)}.to raise_error (NoMethodError)
+    expect{lmd str}.to raise_error (NoMethodError)
+  end
+  example 'lambdaは引数の数にこだわる' do
+    lmd = lambda{|a,b| a+b}
+    expect{lmd.(1,2,3)}.to raise_error (ArgumentError)
+    expect{lmd.yield(1)}.to raise_error (ArgumentError)
+  end
+  example 'arityで引数の数を確認できる' do
+    lmd = lambda{|a,b| a+b}
+    expect(lmd.arity).to eq 2
   end
 end
 
@@ -173,5 +209,38 @@ describe '{} vs do-end' do
   example '{}とdo-endの引数の省略' do
     expect(BracesVsRoundBrackets.new.braces_with_no_round_brackets).to eq "hey"
     expect(BracesVsRoundBrackets.new.doend_with_no_round_brackets).to eq "hey"
+  end
+end
+
+describe '自作のmap, map!関数' do
+  class Array
+    def mymap(&prc)
+      retary = []
+      self.each{|val| retary << prc.call(val)}
+      retary
+    end
+    def mymap!(&prc)
+      retary = []
+      self.each{|val| retary << prc.call(val)}
+      self.replace(retary)
+    end
+  end
+  prc = Proc.new{|val| val**2}
+  ary = [1,2,3]
+  aryid = ary.object_id
+
+  example 'mapと同じ結果になる' do
+    expect(ary.mymap(&prc)).to eq ary.map(&prc)
+  end
+  example 'mapは自身は変更しない' do
+    expect(ary).to eq [1,2,3]
+  end
+  example 'map!と同じ結果になる' do
+    ary2 = ary.dup
+    expect(ary.mymap!(&prc)).to eq ary2.map!(&prc)
+  end
+  example 'map!は自身を変更するが、オブジェクトidはそのまま' do
+    expect(ary).to eq [1,4,9]
+    expect(ary.object_id).to eq aryid
   end
 end

@@ -72,8 +72,13 @@ describe 'self' do
         def s_block(ary)
           ary.map(&self.method(:*))
         end
+        def self_proc
+          Proc.new{self}
+        end
       end
-      expect(Self_block.new.s_block([1,2,3])).to eq [1,4,9]
+      self_block = Self_block.new
+      expect(self_block.s_block([1,2,3])).to eq [1,4,9]
+      expect(self_block.self_proc.call).to eq self_block
     end
   end
 end

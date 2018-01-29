@@ -19,6 +19,11 @@ describe 'alias' do
       alias $Y $X
       expect($Y).to eq 'global'
     end
+    example '参照先は同じ' do
+      expect($X.equal? $Y).to be true
+      $X = 'global next'
+      expect($Y).to eq 'global next'
+    end
   end
 end
 describe 'undef' do
@@ -55,7 +60,7 @@ describe 'undef' do
     child = Child.new
     child2 = Child.new
     parent = Parent.new
-    example 'そのクラスからは完全に取り除く' do
+    example 'そのクラスからは、そのクラスの他のオブジェクトからも取り除き、同名メソッドが親にあってもNoMethodErrorとなる' do
       expect(child.parent).to eq 'child'
       expect(child2.parent).to eq 'child'
       expect(parent.parent).to eq 'parent'

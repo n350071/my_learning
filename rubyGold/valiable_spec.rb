@@ -1,29 +1,26 @@
 describe 'local' do
   v1 = 1
   class Local
+    v2 = 2
     def getV1
-      v1
+      v1 #未初期化エラー
     end
     def getV2
-      v2
+      v2 #未初期化エラー
     end
     def getV3
-      v3 = 3 if false
+      v3 = 3 if false #未代入によるnil
     end
     def getV4
-      v4 = 4
+      v4 = 4 #宣言も代入も完了して4
     end
-    v2 = 2
   end
   local = Local.new
-  example 'v1はクラス定義の外なので参照不可(getV1スコープ内で未初期化を参照してエラー)' do
+  example 'v1はクラス定義の外なので参照不可(getV1スコープ内で未初期化エラー)' do
     expect{local.getV1}.to raise_error (NameError)
   end
-  example 'v2はインスタンスメソッドgetV2のスコープの外なので参照不可(getV2スコープ内でみ初期化を参照してエラー)' do
+  example 'v2はインスタンスメソッドgetV2のスコープの外なので参照不可(getV2スコープ内で未初期化エラー)' do
     expect{local.getV2}.to raise_error (NameError)
-  end
-  example 'v2はLoaclを定義したときに返す値としてなら取得可能' do
-    expect(true).to be true
   end
   example 'v3は宣言はしてるが、代入はできていないのでnil' do
     expect(local.getV3).to be nil

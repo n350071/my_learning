@@ -12,9 +12,12 @@
   * **Ruby技術者認定試験合格教本** ←試験対策そのものはコレをつかう
 * 問題集
   * Ruby技術者認定試験合格教本
+    * 1回目:64%
+    * 2回目:94%
   * http://www.ruby.or.jp/ja/certification/examination/rex
-    * 1回目:54%
+    * 1回目:54% ←Silve受ける前にやってみた
     * 2回目:76%
+    * 3回目:84%
   * [ITトレメ](http://jibun.atmarkit.co.jp/scenter/ittrain/121_cal.html)
 * Extra
   * 関数型プログラミング
@@ -51,7 +54,8 @@
 ---
 
 # 対策ポイント再整理
-## 実行時オプション
+## 環境周り
+### 実行時オプション
 * -c 文法的に正しいかのcheck
 * -e 文字列をRubyとしてexecute
 * -w 冗長モードでwarningが出る
@@ -59,6 +63,26 @@
 * -l $LOAD_PATHに文字列追加
 * -r 実行前にrequire(実行する)
 * -d debugモード
+
+### require, load
+クラス |  メソッド   | 同一ファイル | 拡張子
+ -- | -- | -- | --
+Kernel# | require | １度だけ実行 | 省略可能
+Kernel# | load    | なんども実行 | 省略不可能
+
+### 組み込み定数
+* STDIN
+* STDOUT
+* STDERR
+* ENV 環境変数
+* ARGF 仮想ファイル
+* ARGV 引数
+* DATA `__END__`行こうをアクセルするFileオブジェクト
+
+### 環境変数
+* RUBYOPT デフォルトで指定するコマンドラインオプション
+* RUBYLIB デフォルトでライブラリを検索するパスを指定
+* PATH Ruby上から実行したコマンドを検索するパスを指定
 
 ## オブジェクト指向
 
@@ -203,9 +227,9 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
 * 状態確認
   * status
   * alive?
-  * Thread.list
-  * Thread.min
-  * Thread.current
+  * Thread.list スレッドの一覧を配列で取得
+  * Thread.main メインスレッド取得
+  * Thread.current 現在のスレッド取得
   * Thread.pass 実行中の状態を変えずに他のスレッドに実行権を譲る
 * 即実行する
   * run
@@ -245,7 +269,6 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
   * Fiber.yield
 
 
-## 組み込みクラス
 ### Regexp
 * オプション
   * i, Regexp::IGNORECASE 1
@@ -284,7 +307,10 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
 * 概要
   * オブジェクトを文字列化する
   * セッション変数やクッキーをDBに保存するときなどに使う
-  * 書き出せないクラスに制限
+  * 書き出せないクラス
+    * IO,File,Dir,Socket
+    * 特異メソッドを定義したオブジェクト
+    * 無名クラス、モジュール
   * 書き出すオブジェクトに制限
 * オブジェクトを文字列化する書き込む
   * Marshal.dump({:a=>1,:b=>2,:c=>3},file)
@@ -312,6 +338,10 @@ bar(1,2)
 #=>[1,2]
 
 x, *y = *[0,1,2] #=>  x=0, y=[1,2] #右辺の*は無視してよい
+(a,b),c = [1,2,3,4],5
+#=> a=1
+#=> b=2
+#=> c=5
 
 #無名の可変長引数
 def initialize(*) #サブクラスでsuperとしてエラーにならないので、意識しなくてよくなる
@@ -452,6 +482,8 @@ p example
       hoge = "hoge".freeze
       hoge.frozen?          #=> true
       ```
+* モジュールもfreeze可能
+
 #### 汚染
 * taint
   * Objects that are marked as tainted will be restricted from various built-in methods.
@@ -466,7 +498,7 @@ method | taint | object_id  | 要素のobject_id  | 特異メソッド   | froze
 clone  | copy  | 異なる      | 同じ             | コピーする    | コピーする  
 dup    | copy  | 異なる      | 同じ             |             |       
 
-#### DATA `__END__`
+
 
 ## socket
 ## date

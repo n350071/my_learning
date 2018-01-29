@@ -133,16 +133,21 @@ describe 'Mix-in' do
       expect(bar.mod).to eq 'Single'
       expect{bar.special}.to raise_error (NoMethodError)
     end
-    example '特異クラスでのinclude = オブジェクト.extend' do
+    example '特異クラスでのinclude/prepend = オブジェクト.extend' do
       foo = Single.new
       bar = Single.new
+      baz = Single.new
       class << foo
         include ModA
       end
-      expect(foo.mod).to eq 'ModA'
-      expect(bar.mod).to eq 'Single'
+      class << bar
+        prepend ModA
+      end
+      baz.extend(ModA)
+      expect(foo.mod).to eq baz.mod
+      expect(bar.mod).to eq baz.mod
     end
-    example '特異クラスでextendすると、' do
+    example '特異クラスでextendしても意味がない' do
       foo = Single.new
       bar = Single.new
       class << foo
