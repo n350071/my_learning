@@ -18,7 +18,9 @@
     * 1回目:54% ←Silve受ける前にやってみた
     * 2回目:76%
     * 3回目:84%
+    * マラソン:24問連続正解
   * [ITトレメ](http://jibun.atmarkit.co.jp/scenter/ittrain/121_cal.html)
+    * 1回目:91%
 * Extra
   * 関数型プログラミング
     * [可変性の回避 ― Rubyへの関数型プログラミングスタイルの適用](http://postd.cc/avoid-mutation-functional-style-in-ruby/)
@@ -161,6 +163,10 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
   * undef <メソッド名>,<メソッド名>,<メソッド名>
   * 定義前に書くとNameError
   * undefすると、継承・includeしたものすべて、そのクラスから完全に取り除く。親には影響しないが、そのクラスの全インスタンスから消える
+
+**undef_method**
+**remove_method**
+
 
 ### [Mix-in](./mix-in_spec.rb)
 
@@ -497,9 +503,3 @@ method | taint | object_id  | 要素のobject_id  | 特異メソッド   | froze
 --     | --    | --         | --              | --           | --    
 clone  | copy  | 異なる      | 同じ             | コピーする    | コピーする  
 dup    | copy  | 異なる      | 同じ             |             |       
-
-
-
-## socket
-## date
-## stringio など

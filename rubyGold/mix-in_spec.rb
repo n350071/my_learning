@@ -244,11 +244,16 @@ describe 'Mix-in' do
     end
   end
 
-  describe 'モジュールのクラスメソッド' do
+  describe 'モジュールのモジュールメソッド' do
     module M
       def self.moo
         'Mmoo'
       end
+
+      def mod_fun
+        'Mod_fun'
+      end
+      module_function :mod_fun
     end
     class H
       include M
@@ -260,6 +265,9 @@ describe 'Mix-in' do
     example 'インクルード、extendしてもクラスからは呼べない' do
       expect{(H.moo)}.to raise_error(NoMethodError)
       expect{(H.new.moo)}.to raise_error(NoMethodError)
+    end
+    example 'module_functionも使える' do
+      expect(M.mod_fun).to eq 'Mod_fun'
     end
 
   end
