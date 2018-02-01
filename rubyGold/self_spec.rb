@@ -63,7 +63,7 @@ describe 'self' do
       expect(s_C.ans_self).to eq s_C
     end
   end
-  describe 'self in block means the receiver of the method or class' do
+  describe 'self in block is the receiver' do
     example 'block in method' do
       class Self_block
         def *(input)

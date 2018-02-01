@@ -18,6 +18,7 @@
     * 1回目:54% ←Silve受ける前にやってみた
     * 2回目:76%
     * 3回目:84%
+    * 4回目:86% <- 新規の問題が4問あり、8%落とした。
     * マラソン:24問連続正解
   * [ITトレメ](http://jibun.atmarkit.co.jp/scenter/ittrain/121_cal.html)
     * 1回目:91%
@@ -43,17 +44,7 @@
       * ①間違えたところ
       * ②あやふやだと感じるところ
 
----
-# 対策ポイント
-* まとめた内容の定着
-* 添付ライブラリ
-* 正規表現の$0,$1,$2
-* {}とdo-endの()の省略可否(do-endは省略可)
-* Refine,using p.146
-* inject
-* Fiber
 
----
 
 # 対策ポイント再整理
 ## 環境周り
@@ -155,7 +146,7 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
     * メソッド
     * グローバル変数
   * Syntax
-    * メソッド名は識別子かシンボルで指定(文字列は不可)
+    * メソッド名は識別子(そのまま)かシンボルで指定(文字列は不可)
     * 定義前に書くとNameError
 * Module#alias_method
   * `alias_method :orig_exit, :exit`
@@ -178,12 +169,21 @@ class Bar < XXX; end #TypeError:親はFooであり変更できない
   * オブジェクトにモジュールのインスタンスメソッドを追加する
 * `class <<`
   * オブジェクトのシングルトンクラスにアクセスする
+  * `class << M` モジュールMに対して行えば、モジュールの特異クラスにアクセスする
   * [公式リファレンス](https://ruby-doc.org/core-2.5.0/doc/syntax/modules_and_classes_rdoc.html#label-Singleton+Classes)
 * method中で定義されるメソッド
   * 外側のメソッドが呼ばれるまで定義されない
 * Refinements
   * module <モジュール>; refine <クラス> do ~ end; end : ターゲットとするクラスと、変更内容を書く
   * using <モジュール> : 変更実施()
+  * クラスメソッドを再定義するときは<クラス>.singleton_class do とする(ブロック内でself.methodとしない。)
+* 追加
+  * class_eval
+  * module_eval
+  * instance_eval
+  * 文字列を渡す(レシーバのスコープで評価される)
+  * ブロックを渡す(スコープはそのまま。レシーバとは関係なし)
+
 
 ### [変数と定数](./valiable_spec.rb)
 #### ローカル変数
